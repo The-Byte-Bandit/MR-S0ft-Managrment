@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Course = require('../models/Course');
+const Course = require('../models/course');
 
 // Create a new course
 router.post('/create', verifyRole(['admin', 'course_advisor']), async (req, res) => {

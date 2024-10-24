@@ -1,4 +1,4 @@
-// require('dotenv').config();
+require('dotenv').config();
 // const express = require('express');
 // const router = express.Router();
 // const bcrypt = require('bcryptjs');
@@ -181,16 +181,33 @@ const User = require('../models/user');
 
 // Register a new user
 router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { firstname, lastname, email, password, role } = req.body;
   try {
     const existingUser = await User.findOne({ email });
-    if (existingUser) return res.status(400).json({ message: 'User already exists' });
+    if (existingUser) return res.status(400).json({ message: 'User with this email already exists' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ name, email, password: hashedPassword, role });
+    const newUser = new User({ firstname, lastname, email, password: hashedPassword, role });
     await newUser.save();
 
-    res.status(201).json({ message: 'User registered successfully' });
+      const accessToken = jwt.sign({
+        id: newUser._id,
+        role: newUser.role,
+      },
+        process.env.JWT_SEC,
+        {expiresIn: "1d"}
+      )
+
+    res.status(200).json({
+              user:{
+                username: newUser.username,
+                email: newUser.email,
+                token: accessToken,
+                userId: newUser._id,
+              },
+              message: 'User registered successfully',
+        
+            });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
@@ -206,7 +223,13 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ 
+      userId: user._id, 
+      role: user.role 
+    }, 
+      process.env.JWT_SECRET, 
+      { expiresIn: '1d' }
+    );
     res.json({ token });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

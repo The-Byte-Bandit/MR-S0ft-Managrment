@@ -4,10 +4,10 @@ const session = require('express-session');
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 const cors = require('cors');
-const findOrCreate = require('mongoose-findorcreate');
 const userRoute = require("./routes/user");
-const adminRoute = require('./routes/admin');
-const courseRoute = require('./routes/course');
+const studentRoute = require('./routes/students');
+const materialRoute = require('./routes/materials');
+const courseRoute = require('./routes/courses');
 const authRoute = require('./routes/auth');
 
 const app = express();
@@ -27,10 +27,11 @@ app.use(session({
 }));
 
 // Routes
-app.use("/users", userRoute);
-app.use("/admin", adminRoute);
 app.use("/auth", authRoute);
-app.use("/courses", courseRoute);
+app.use("/user", userRoute);
+app.use("/student", studentRoute);
+app.use("/course", courseRoute);
+app.use("/material", materialRoute);
 
 // Mongoose Connection
 mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true })

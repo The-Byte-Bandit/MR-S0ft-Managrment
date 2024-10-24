@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
+const User = require('../models/user');
 
 // Middleware to verify roles (admin, course_advisor)
 const verifyRole = (roles) => (req, res, next) => {
@@ -10,10 +10,10 @@ const verifyRole = (roles) => (req, res, next) => {
 
 // Create a new student account
 router.post('/create-student', verifyRole(['admin', 'course_advisor']), async (req, res) => {
-  const { name, email, password, courses } = req.body;
+  const { firstname, lastname, email, password, courses } = req.body;
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    const newStudent = new User({ name, email, password: hashedPassword, role: 'student', courses });
+    const newStudent = new User({ firstname, lastname, email, password: hashedPassword, role: 'student', courses });
     await newStudent.save();
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
   } catch (error) {

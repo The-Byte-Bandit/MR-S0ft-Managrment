@@ -1,7 +1,7 @@
 const express = require('express');
 const multer = require('multer');
 const router = express.Router();
-const Material = require('../models/Material');
+const Material = require('../models/material');
 
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
@@ -17,8 +17,8 @@ const upload = multer({
 });
 
 // Upload material (PDF or YouTube link)
-router.post('/upload', upload.single('pdf'), verifyRole(['teacher']), async (req, res) => {
-  const { courseId, type, url } = req.body; // Handle YouTube links via 'url', PDFs via req.file
+router.post('/upload', upload.single('pdf'), verifyRole(['admin', 'course_advisor', 'teacher,']), async (req, res) => {
+  const { courseId, type, url } = req.body;
   try {
     const filePath = req.file ? `/uploads/${req.file.filename}` : url;
     const newMaterial = new Material({
