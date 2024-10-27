@@ -4,11 +4,12 @@ const session = require('express-session');
 const bodyParser = require("body-parser");
 const mongoose = require('mongoose');
 const cors = require('cors');
-const userRoute = require("./routes/user");
+const userRoute = require("./routes/users");
 const studentRoute = require('./routes/students');
 const materialRoute = require('./routes/materials');
 const courseRoute = require('./routes/courses');
 const authRoute = require('./routes/auth');
+const classRoute = require('./routes/class');
 
 const app = express();
 const port = process.env.PORT ;
@@ -16,7 +17,8 @@ const mongoURI = process.env.MONGO_URI
 
 // Middleware
 app.use(cors());
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+app.use(express.json());
 app.use(express.static("public"));
 
 app.use(session({
@@ -29,8 +31,9 @@ app.use(session({
 // Routes
 app.use("/auth", authRoute);
 app.use("/user", userRoute);
-app.use("/student", studentRoute);
+app.use('/student', studentRoute);
 app.use("/course", courseRoute);
+app.use("/class", classRoute);
 app.use("/material", materialRoute);
 
 // Mongoose Connection

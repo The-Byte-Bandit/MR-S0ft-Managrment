@@ -5,31 +5,25 @@ const CourseSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
-    description: { 
-        type: String 
-    },
     materials: [
         { 
             type: mongoose.Schema.Types.ObjectId, 
             ref: 'Material' 
         }
     ],
-    students: [
-        { 
-            type: mongoose.Schema.Types.ObjectId, ref: 'User' 
-        }
-    ],
     duration: { 
         type: Number, 
-        required: true 
-    }, // In days
+        // required: true 
+    }, 
     startDate: { 
         type: Date, 
-        default: Date.now 
+        default: Date.now ,
+        // required: true 
     },
     endDate: { 
-        type: Date 
-    }, // Can be calculated from duration
+        type: Date,
+        // required: true 
+    }, 
   });
   
 

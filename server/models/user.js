@@ -20,16 +20,17 @@ const UserSchema = new mongoose.Schema({
   },
   role: { 
     type: String, 
-    enum: ['student', 'teacher', 'admin', 'course_advisor'], 
+    enum: ['teacher', 'admin', 'course_advisor'], 
     required: true 
   },
-  courses: [
+  classes: [
     { type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Course' }
+      ref: 'Class' }
     ],
   isActive: { 
     type: Boolean, 
-    default: true },
+    default: true 
+  },
   createdAt: { 
     type: Date, 
     default: Date.now 

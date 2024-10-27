@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const router = express.Router();
 const Material = require('../models/material');
+const verifyRole = require('../middleware/roleMiddleware');
+const authenticateUser = require('../middleware/authenticateUser');
 
 // Set up Multer for file uploads
 const storage = multer.diskStorage({
@@ -17,7 +19,7 @@ const upload = multer({
 });
 
 // Upload material (PDF or YouTube link)
-router.post('/upload', upload.single('pdf'), verifyRole(['admin', 'course_advisor', 'teacher,']), async (req, res) => {
+router.post('/upload', upload.single('pdf'),authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher,']), async (req, res) => {
   const { courseId, type, url } = req.body;
   try {
     const filePath = req.file ? `/uploads/${req.file.filename}` : url;
@@ -43,3 +45,6 @@ router.get('/:courseId/materials', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
+module.exports = router;

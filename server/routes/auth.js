@@ -172,71 +172,94 @@ require('dotenv').config();
 
 
 
-
 const express = require('express');
 const router = express.Router();
-const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user'); 
+const Student = require('../models/student');
 
-// Register a new user
+// Register a new user (without password encryption)
 router.post('/register', async (req, res) => {
   const { firstname, lastname, email, password, role } = req.body;
   try {
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'User with this email already exists' });
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ firstname, lastname, email, password: hashedPassword, role });
+    // Save password as plain text (NOT RECOMMENDED)
+    const newUser = new User({ firstname, lastname, email, password, role });
     await newUser.save();
 
-      const accessToken = jwt.sign({
+    const accessToken = jwt.sign(
+      {
         id: newUser._id,
         role: newUser.role,
       },
-        process.env.JWT_SEC,
-        {expiresIn: "1d"}
-      )
+      process.env.JWT_SECRET,
+      { expiresIn: "1d" }
+    );
 
     res.status(200).json({
-              user:{
-                username: newUser.username,
-                email: newUser.email,
-                token: accessToken,
-                userId: newUser._id,
-              },
-              message: 'User registered successfully',
-        
-            });
+      user: {
+        firstname: newUser.firstname,
+        lastname: newUser.lastname,
+        email: newUser.email,
+        token: accessToken,
+        userId: newUser._id,
+      },
+      message: 'User registered successfully',
+    });
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Login
+// Login (without password encryption check)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   try {
-    const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: 'Invalid email or password' });
+    // Try to find the user in the Student collection first
+    let user = await Student.findOne({ email });
+    
+    // If not found in Student, try to find in User collection
+    if (!user) {
+      user = await User.findOne({ email });
+    }
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: 'Invalid email or password' });
+    // If the user is not found in both collections or the password is incorrect, return an error
+    if (!user || user.password !== password) {
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
 
-    const token = jwt.sign({ 
-      userId: user._id, 
-      role: user.role 
-    }, 
+    // Generate JWT token
+    const token = jwt.sign(
+      { 
+        userId: user._id, 
+        role: user.role 
+      }, 
       process.env.JWT_SECRET, 
       { expiresIn: '1d' }
     );
-    res.json({ token });
+
+    // Respond with the token and user details
+    res.json({ 
+      token,
+      user: {
+        firstname: user.firstname,
+        lastname: user.lastname,
+        email: user.email,
+        userId: user._id,
+        role: user.role
+      }
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Password reset (you can customize this)
+// Password reset (customize as needed)
 router.post('/reset-password', async (req, res) => {
   // Implement password reset logic here
 });
+
+module.exports = router;
