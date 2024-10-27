@@ -205,6 +205,7 @@ router.post('/register', async (req, res) => {
         email: newUser.email,
         token: accessToken,
         userId: newUser._id,
+        role: newUser.role
       },
       message: 'User registered successfully',
     });
@@ -216,6 +217,8 @@ router.post('/register', async (req, res) => {
 // Login (without password encryption check)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
+  console.log(req.body, email, password);
+  
   try {
     // Try to find the user in the Student collection first
     let user = await Student.findOne({ email });
@@ -227,6 +230,8 @@ router.post('/login', async (req, res) => {
 
     // If the user is not found in both collections or the password is incorrect, return an error
     if (!user || user.password !== password) {
+      console.log('Invalid email or password');
+      
       return res.status(400).json({ message: 'Invalid email or password' });
     }
 
