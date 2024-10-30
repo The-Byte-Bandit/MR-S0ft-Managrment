@@ -8,10 +8,14 @@ const verifyRole = (allowedRoles) => {
   
         // Check if the user's role is in the allowedRoles array
         if (!allowedRoles.includes(userRole)) {
+          console.log('Access denied: You do not have the required permissions.');
+          
           return res.status(403).json({ message: 'Access denied: You do not have the required permissions.' });
         }
   
         // Proceed if the role is allowed
+        console.log('allowed');
+        
         next();
       } catch (error) {
         console.log(error);

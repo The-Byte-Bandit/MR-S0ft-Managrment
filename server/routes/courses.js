@@ -70,9 +70,11 @@ router.delete('/:id',authenticateUser, verifyRole(['admin', 'course_advisor']), 
 });
 
 // Get all courses
-router.get('/', async (req, res) => {
+router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
     const courses = await Course.find();
+    console.log(courses);
+    
     res.json(courses);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

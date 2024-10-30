@@ -105,12 +105,99 @@ router.put('/:id/reactivate',authenticateUser, verifyRole(['admin', 'course_advi
   }
 });
 
-// Get all users (Admin-only)
-router.get('/get-students',authenticateUser, verifyRole(['admin']), async (req, res) => {
+// // Get all students (Admin-only)
+// router.get('/get-students',authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+//   try {
+//     const students = await Student.find();
+//     res.json(students);
+//   } catch (error) {
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
+// // Get all teachers (Admin-only)
+// router.get('/get-teachers', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+//   try {
+//     const teachers = await User.find({ role: 'teacher' })
+//       .populate({
+//         path: 'classes',
+//         select: 'title _id', // Select only title and ID from the Class schema
+//       });
+
+//     // Format the response to include teachers and their classes
+//     const formattedTeachers = teachers.map(teacher => ({
+//       teacherId: teacher._id,
+//       teacherName: `${teacher.firstname} ${teacher.lastname}`,
+//       classes: teacher.classes.map(classItem => ({
+//         classId: classItem._id,
+//         className: classItem.title,
+//       })),
+//     }));
+
+//     res.json({ teachers: formattedTeachers });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error', error });
+//   }
+// });
+
+
+// Get minimal data for all students
+router.get('/students', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
-    const students = await Student.find();
-    res.json(students);
+    const students = await Student.find().select('firstname lastname _id'); // Fetch only ID and names
+    res.json({ students });
   } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get minimal data for all teachers
+router.get('/teachers', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  try {
+    const teachers = await User.find({ role: 'teacher' }).select('firstname lastname _id'); // Fetch only ID and names
+    res.json({ teachers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get full data for a specific student by ID
+router.get('/students/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  try {
+    const student = await Student.findById(req.params.id).populate('classes', 'title _id'); // Populate class titles
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+    
+    res.json(student);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get full data for a specific teacher by ID
+router.get('/teachers/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  try {
+    const teacher = await User.findById(req.params.id)
+      .populate({
+        path: 'classes',
+        select: 'title _id', // Fetch class titles and IDs only
+      });
+
+    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+
+    res.json({
+      teacherId: teacher._id,
+      teacherName: `${teacher.firstname} ${teacher.lastname}`,
+      classes: teacher.classes.map(classItem => ({
+        classId: classItem._id,
+        className: classItem.title,
+      })),
+    });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });

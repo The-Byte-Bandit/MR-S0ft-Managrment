@@ -34,6 +34,8 @@ const authenticateUser = (req, res, next) => {
   const authHeader = req.header('Authorization');
 
   if (!authHeader) {
+    console.log('student', req.body);
+    
     return res.status(401).json({ message: 'No token provided, authorization denied' });
   }
 
@@ -43,7 +45,7 @@ const authenticateUser = (req, res, next) => {
     // Verify the token using your secret key
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.user = decoded; // Assuming the token contains user info, including the role
-
+    console.log('next')
     next(); // Proceed to the next middleware or route handler
   } catch (error) {
     const v = process.env.JWT_SECRET

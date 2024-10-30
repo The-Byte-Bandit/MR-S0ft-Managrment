@@ -4,10 +4,10 @@ import {
   USER_SIGNUP_ERROR,
   USER_LOGIN_SUCCESS,
   USER_LOGIN_ERROR,
-  ADMIN_SIGNUP_SUCCESS,
-  ADMIN_SIGNUP_ERROR,
-  ADMIN_LOGIN_SUCCESS,
-  ADMIN_LOGIN_ERROR,
+  // ADMIN_SIGNUP_SUCCESS,
+  // ADMIN_SIGNUP_ERROR,
+  // ADMIN_LOGIN_SUCCESS,
+  // ADMIN_LOGIN_ERROR,
   COURSE_CREATE_SUCCESS,
   COURSE_CREATE_ERROR,
   COURSE_UPDATE_SUCCESS,
@@ -22,10 +22,24 @@ import {
   CLASS_DELETE_ERROR,
   FETCH_CLASSES_SUCCESS,
   FETCH_CLASSES_ERROR,
+  FETCH_COURSES_SUCCESS,
+  FETCH_COURSES_ERROR,
   SET_LOADING,
   CLEAR_LOADING,
   RESET_ERROR,
+  FETCH_MINIMAL_STUDENTS_SUCCESS,
+  FETCH_MINIMAL_STUDENTS_ERROR,
+  FETCH_MINIMAL_TEACHERS_SUCCESS,
+  FETCH_MINIMAL_TEACHERS_ERROR,
+  FETCH_TEACHER_DETAILS_SUCCESS,
+  FETCH_TEACHER_DETAILS_ERROR,
+  FETCH_STUDENT_DETAILS_SUCCESS,
+  FETCH_STUDENT_DETAILS_ERROR,
+  STUDENT_CREATE_SUCCESS,
+  STUDENT_CREATE_ERROR,
+  USER_LOGOUT,
 } from '../actionTypes';
+import { persistor } from '../store';
 import { BASE_URL } from '../../constants/constant';
 
 // Utility function to set loading
@@ -74,6 +88,31 @@ export const userLogin = (email, password, navigate) => async (dispatch) => {
     dispatch({
       type: USER_LOGIN_ERROR,
       payload: error.response?.data.message || 'Login failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+// Create Course Action
+export const fetchCourses = (token) => async (dispatch) => {
+  console.log('fetching courses');
+  
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/course`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_COURSES_SUCCESS,
+      payload: response.data,
+    });
+    console.log(response.data);
+    
+  } catch (error) {
+    dispatch({
+      type: FETCH_COURSES_ERROR,
+      payload: error.response?.data.message || 'Course fetching failed',
     });
   } finally {
     clearLoading(dispatch);
@@ -212,7 +251,7 @@ export const deleteClass = (classId, token) => async (dispatch) => {
 export const fetchClasses = (token) => async (dispatch) => {
   try {
     setLoading(dispatch);
-    const response = await axios.get(`${BASE_URL}/classes`, {
+    const response = await axios.get(`${BASE_URL}/class`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({ type: FETCH_CLASSES_SUCCESS, payload: response.data.classes });
@@ -226,7 +265,143 @@ export const fetchClasses = (token) => async (dispatch) => {
   }
 };
 
+export const fetchStudentClasses = (token, studentId) => async (dispatch) => {
 
+  
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/student/${studentId}/classes`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: FETCH_CLASSES_SUCCESS, payload: response.data.classes });
+  } catch (error) {
+    dispatch({
+      type: FETCH_CLASSES_ERROR,
+      payload: error.response?.data.message || 'Fetching classes failed',
+    });
+    console.log(error.response?.data);
+    
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const fetchMinimalStudents = (token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/user/students`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_MINIMAL_STUDENTS_SUCCESS,
+      payload: response.data.students,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_MINIMAL_STUDENTS_ERROR,
+      payload: error.response?.data.message || 'Fetching students failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const fetchMinimalTeachers = (token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/user/teachers`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_MINIMAL_TEACHERS_SUCCESS,
+      payload: response.data.teachers,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_MINIMAL_TEACHERS_ERROR,
+      payload: error.response?.data.message || 'Fetching teachers failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+export const fetchTeacherDetails = (teacherId, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/teachers/${teacherId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_TEACHER_DETAILS_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_TEACHER_DETAILS_ERROR,
+      payload: error.response?.data.message || 'Fetching teacher details failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const fetchStudentDetails = (studentId, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/students/${studentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_STUDENT_DETAILS_SUCCESS,
+      payload: response.data,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_STUDENT_DETAILS_ERROR,
+      payload: error.response?.data.message || 'Fetching student details failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+
+export const createStudent = (studentData, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    
+    const response = await axios.post(`${BASE_URL}/user/create-student`, studentData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    dispatch({
+      type: STUDENT_CREATE_SUCCESS,
+      payload: response.data.student,
+    });
+
+  } catch (error) {
+    dispatch({
+      type: STUDENT_CREATE_ERROR,
+      payload: error.response?.data.message || 'Student creation failed',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const userLogout = (navigate) => async (dispatch) => {
+  // Clear localStorage and persist storage
+  localStorage.clear();
+  await persistor.purge();
+
+  // Dispatch the logout action
+  dispatch({
+    type: USER_LOGOUT,
+  });
+
+  // Optionally redirect to the login or home page
+  navigate('/');
+};
 //Reset error
 
 export const resetError = () => ({

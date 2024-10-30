@@ -88,7 +88,7 @@ function SignForm() {
           {error && <div className="alert alert-danger">{error}</div>}
           
           <div className="d-flex justify-content-between align-items-center">
-            <Link to="/login" className="text-primary">Already have an account?</Link>
+            <Link to="/" className="text-primary">Already have an account?</Link>
             <button 
               type="submit" 
               className="btn btn-primary"

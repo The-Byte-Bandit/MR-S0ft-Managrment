@@ -8,31 +8,31 @@ const verifyRole = require('../middleware/roleMiddleware');
 const authenticateUser = require('../middleware/authenticateUser');
 
 // Get all assigned classes for the logged-in student
-router.get('/classes', authenticateUser, async (req, res) => {
-  const {id} = req.body;
+router.get('/:id/classes', authenticateUser,verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
+  const { id } = req.params;
+  console.log('student', id);
+  console.log('student');
+  
+  
   try {
-    // Fetch the student by ID and populate their classes with course information
+    // Find the student by ID and populate their classes
     const student = await Student.findById(id).populate({
       path: 'classes',
-      model: 'Classes', // Explicitly set the model to 'Classes'
+      model: 'Classes',
       populate: {
         path: 'course',
         select: 'title'
       }
     });
-    
 
-    // Check if the user is a student and has classes
     if (!student || student.role !== 'student') {
-      return res.status(403).json({ message: 'Unauthorized access', student });
+      return res.status(403).json({ message: 'Unauthorized access' });
     }
 
-    // If the student has no classes, respond with an empty array
     if (!student.classes || student.classes.length === 0) {
       return res.json({ message: 'No classes assigned to this student', classes: [] });
     }
 
-    // Respond with the populated classes
     res.json({
       message: 'Classes retrieved successfully',
       classes: student.classes.map(classItem => ({

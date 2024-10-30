@@ -193,19 +193,59 @@ router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'co
 
 
 // Get all classes
-router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+// router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+//     try {
+//       // Find all classes and populate course and teachers
+//       const classes = await Classes.find()
+//         .populate('course', 'title') // Assuming the Course model has a 'title' field
+//         .populate('teachers', 'firstname lastname'); // Assuming the User model has 'firstname' and 'lastname' fields
+  
+//       // Map through the classes to create a detailed response structure
+//       const response = classes.map(classItem => ({
+//         _id: classItem._id,
+//         className: classItem.title,
+//         courseName: classItem.course.title,
+//         courseId: classItem.course._id,
+//         teachers: classItem.teachers.map(teacher => ({
+//           teacherName: `${teacher.firstname} ${teacher.lastname}`,
+//           teacherId: teacher._id
+//         })),
+//         startDate: classItem.startDate,
+//         endDate: classItem.endDate
+//       }));
+  
+//       res.json({ message: 'Classes retrieved successfully', classes: response });
+//     } catch (error) {
+//       console.log(error);
+//       res.status(500).json({ message: 'Server error', error });
+//     }
+//   });
+
+
+
+  router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
     try {
-      // Find all classes and populate course and teachers
-      const classes = await Classes.find()
-        .populate('course', 'title') // Assuming the Course model has a 'title' field
-        .populate('teachers', 'firstname lastname'); // Assuming the User model has 'firstname' and 'lastname' fields
+      let classes;
+  
+      // Check the user role and fetch classes accordingly
+      if (req.user.role === 'admin' || req.user.role === 'course_advisor') {
+        // For admin or course_advisor, retrieve all classes
+        classes = await Classes.find()
+          .populate('course', 'title') // Assuming the Course model has a 'title' field
+          .populate('teachers', 'firstname lastname'); // Assuming the User model has 'firstname' and 'lastname' fields
+      } else if (req.user.role === 'teacher' || req.user.role === 'student') {
+        // For teacher or student, retrieve only their assigned classes
+        classes = await Classes.find({ teachers: req.user._id })
+          .populate('course', 'title')
+          .populate('teachers', 'firstname lastname');
+      }
   
       // Map through the classes to create a detailed response structure
       const response = classes.map(classItem => ({
         _id: classItem._id,
         className: classItem.title,
-        courseName: classItem.course.title,
-        courseId: classItem.course._id,
+        courseName: classItem.course?.title || 'N/A',
+        courseId: classItem.course?._id || null,
         teachers: classItem.teachers.map(teacher => ({
           teacherName: `${teacher.firstname} ${teacher.lastname}`,
           teacherId: teacher._id
@@ -220,6 +260,7 @@ router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async
       res.status(500).json({ message: 'Server error', error });
     }
   });
+  
   
 
 module.exports = router;
