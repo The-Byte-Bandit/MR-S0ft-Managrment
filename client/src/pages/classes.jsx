@@ -1,9 +1,9 @@
 import React from 'react';
 import SmallCard from '../components/smallCard';
-import LargeCard from '../components/largeCard'; // Assuming this component can handle displaying classes
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import ClasssCard from '../components/classCard';
+import { add } from '../constants/constant';
 
 function Classes() {
   // Assume classes are stored in Redux state under state.class.classes
@@ -13,11 +13,12 @@ function Classes() {
     <div className="p-6 w-full h-full">
 
       {/* Add Class Button */}
-      <div className="flex justify-end mb-4">
-        <Link to="/add-class" className="btn bg-blue50 text-white px-4 py-2 rounded-lg hover:bg-blue100 transition">
-          Add Class
+
+      <Link to="/home/add-class" className="   flex justify-end mb-4 no-underline">
+            <div className="px-4 py-2 gap-[6px] rounded-lg hover:bg-blue25 justify-center items-center transition duration-200  text-white  bg-blue50 flex flex-row">
+                <img src={add} alt='add course' className='w-[11px]'/> Add Class
+            </div>
         </Link>
-      </div>
 
       {/* Class Count Summary Card */}
       <div className="mb-4">

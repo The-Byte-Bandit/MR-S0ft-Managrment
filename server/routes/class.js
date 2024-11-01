@@ -250,6 +250,7 @@ router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'co
           teacherName: `${teacher.firstname} ${teacher.lastname}`,
           teacherId: teacher._id
         })),
+        isActive:classItem.isActive,
         startDate: classItem.startDate,
         endDate: classItem.endDate
       }));

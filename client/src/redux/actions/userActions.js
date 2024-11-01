@@ -27,6 +27,7 @@ import {
   SET_LOADING,
   CLEAR_LOADING,
   RESET_ERROR,
+  RESET_STATUS,
   FETCH_MINIMAL_STUDENTS_SUCCESS,
   FETCH_MINIMAL_STUDENTS_ERROR,
   FETCH_MINIMAL_TEACHERS_SUCCESS,
@@ -37,6 +38,8 @@ import {
   FETCH_STUDENT_DETAILS_ERROR,
   STUDENT_CREATE_SUCCESS,
   STUDENT_CREATE_ERROR,
+  TEACHER_CREATE_SUCCESS,
+  TEACHER_CREATE_ERROR,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -107,6 +110,7 @@ export const fetchCourses = (token) => async (dispatch) => {
       type: FETCH_COURSES_SUCCESS,
       payload: response.data,
     });
+    console.log(response.status);
     console.log(response.data);
     
   } catch (error) {
@@ -128,7 +132,7 @@ export const createCourse = (courseData, token) => async (dispatch) => {
     });
     dispatch({
       type: COURSE_CREATE_SUCCESS,
-      payload: response.data.course,
+      payload: { ...response.data, status: response.status },
     });
   } catch (error) {
     dispatch({
@@ -376,14 +380,42 @@ export const createStudent = (studentData, token) => async (dispatch) => {
     
     dispatch({
       type: STUDENT_CREATE_SUCCESS,
-      payload: response.data.student,
+      payload: { ...response.data, status: response.status },
     });
+    console.log(response);
+    
 
   } catch (error) {
     dispatch({
       type: STUDENT_CREATE_ERROR,
       payload: error.response?.data.message || 'Student creation failed',
     });
+    console.log(error);
+    
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const createTeacher = (teacheerData, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    
+    const response = await axios.post(`${BASE_URL}/user/create-teacher`, teacheerData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    
+    dispatch({
+      type: TEACHER_CREATE_SUCCESS,
+      payload: { ...response.data, status: response.status },
+    });
+    console.log(response.status);
+  } catch (error) {
+    dispatch({
+      type: TEACHER_CREATE_ERROR,
+      payload: error.response?.data.message || 'Teacher creation failed',
+    });
+    console.log(error);
   } finally {
     clearLoading(dispatch);
   }
@@ -406,4 +438,8 @@ export const userLogout = (navigate) => async (dispatch) => {
 
 export const resetError = () => ({
   type: RESET_ERROR,
+});
+
+export const resetStatus = () => ({
+  type: RESET_STATUS,
 });

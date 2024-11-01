@@ -73,7 +73,7 @@ router.delete('/:id',authenticateUser, verifyRole(['admin', 'course_advisor']), 
 router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
     const courses = await Course.find();
-    console.log(courses);
+    console.log([courses]);
     
     res.json(courses);
   } catch (error) {

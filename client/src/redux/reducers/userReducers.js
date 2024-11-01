@@ -42,9 +42,12 @@ import {
   SET_LOADING,
   CLEAR_LOADING,
   RESET_ERROR,
+  RESET_STATUS,
   USER_LOGOUT,
   STUDENT_CREATE_SUCCESS,
   STUDENT_CREATE_ERROR,
+  TEACHER_CREATE_SUCCESS,
+  TEACHER_CREATE_ERROR,
 } from '../actionTypes';
 
 const initialState = {
@@ -58,6 +61,8 @@ const initialState = {
   testResults: [], // Array of objects
   loading: false, // Boolean to indicate loading state
   error: null, // Error message, if any
+  status: null,
+  statusText: null,
 };
 
 // Main Reducer Function
@@ -71,7 +76,10 @@ const reducer = (state = initialState, action) => {
 
     case RESET_ERROR:
       return { ...state, error: null };
-      
+
+      case RESET_STATUS:
+        return { ...state, status: null };
+
     // User Authentication Cases
     case USER_SIGNUP_SUCCESS:
     case USER_LOGIN_SUCCESS:
@@ -103,52 +111,61 @@ const reducer = (state = initialState, action) => {
       };
 
     // Course Management Cases
-        case FETCH_COURSES_SUCCESS:
-          return {
-            ...state,
-            courses: action.payload,
-            error: null,
-          };
-        case FETCH_COURSES_ERROR:
-          return {
-            ...state,
-            error: action.payload,
-          };
-    
+    case FETCH_COURSES_SUCCESS:
+      console.log(action.payload);
+      
+      return {
+        ...state,
+        courses: action.payload,
+        error: null,
+      };
+    case FETCH_COURSES_ERROR:
+      return {
+        ...state,
+        error: action.payload,
+        status: action.payload.status,
+      };
+
     case COURSE_CREATE_SUCCESS:
       return {
         ...state,
         courses: [...state.courses, action.payload],
+        status: action.payload.status,
         error: null,
       };
     case COURSE_CREATE_ERROR:
       return {
         ...state,
         error: action.payload,
+        status: action.payload.status,
       };
     case COURSE_UPDATE_SUCCESS:
       return {
         ...state,
-        courses: state.courses.map(course =>
+        courses: state.courses.map((course) =>
           course._id === action.payload._id ? action.payload : course
         ),
         error: null,
+        status: action.payload.status,
       };
     case COURSE_UPDATE_ERROR:
       return {
         ...state,
         error: action.payload,
+        status: action.payload.status,
       };
     case COURSE_DELETE_SUCCESS:
       return {
         ...state,
-        courses: state.courses.filter(course => course._id !== action.payload),
+        courses: state.courses.filter((course) => course._id !== action.payload),
         error: null,
+        status: action.payload.status,
       };
     case COURSE_DELETE_ERROR:
       return {
         ...state,
         error: action.payload,
+        status: action.payload.status,
       };
 
     // Class Management Cases
@@ -157,35 +174,41 @@ const reducer = (state = initialState, action) => {
         ...state,
         classes: [...state.classes, action.payload],
         error: null,
+        status: action.payload.status,
       };
     case CLASS_CREATE_ERROR:
       return {
         ...state,
         error: action.payload,
+        status: action.payload.status,
       };
     case CLASS_UPDATE_SUCCESS:
       return {
         ...state,
-        classes: state.classes.map(cls =>
+        classes: state.classes.map((cls) =>
           cls._id === action.payload._id ? action.payload : cls
         ),
         error: null,
+
       };
     case CLASS_UPDATE_ERROR:
       return {
         ...state,
         error: action.payload,
+
       };
     case CLASS_DELETE_SUCCESS:
       return {
         ...state,
-        classes: state.classes.filter(cls => cls._id !== action.payload),
+        classes: state.classes.filter((cls) => cls._id !== action.payload),
         error: null,
+
       };
     case CLASS_DELETE_ERROR:
       return {
         ...state,
         error: action.payload,
+
       };
 
     // Fetch Classes
@@ -194,11 +217,13 @@ const reducer = (state = initialState, action) => {
         ...state,
         classes: action.payload,
         error: null,
+
       };
     case FETCH_CLASSES_ERROR:
       return {
         ...state,
         error: action.payload,
+ 
       };
 
     // User Select Courses
@@ -207,6 +232,7 @@ const reducer = (state = initialState, action) => {
         ...state,
         courses: action.payload,
         error: null,
+
       };
     case USER_SELECT_COURSES_ERROR:
       return {
@@ -220,11 +246,13 @@ const reducer = (state = initialState, action) => {
         ...state,
         testResults: [...state.testResults, action.payload],
         error: null,
+
       };
     case USER_SUBMIT_TEST_ERROR:
       return {
         ...state,
         error: action.payload,
+
       };
 
     // Fetch User Result Data
@@ -240,6 +268,7 @@ const reducer = (state = initialState, action) => {
         testResults: action.payload,
         loading: false,
         error: null,
+
       };
     case FETCH_USER_RESULT_DATA_FAILURE:
       return {
@@ -248,39 +277,57 @@ const reducer = (state = initialState, action) => {
         error: action.payload,
       };
 
-      case FETCH_MINIMAL_STUDENTS_SUCCESS:
-        return { ...state, minimalStudents: action.payload, error: null };
-      case FETCH_MINIMAL_STUDENTS_ERROR:
-        return { ...state, error: action.payload };
-      case FETCH_MINIMAL_TEACHERS_SUCCESS:
-        return { ...state, minimalTeachers: action.payload, error: null };
-      case FETCH_MINIMAL_TEACHERS_ERROR:
-        return { ...state, error: action.payload };
-      case FETCH_STUDENT_DETAILS_SUCCESS:
-        return { ...state, studentDetails: action.payload, error: null };
-      case FETCH_STUDENT_DETAILS_ERROR:
-        return { ...state, error: action.payload };
-      case FETCH_TEACHER_DETAILS_SUCCESS:
-        return { ...state, teacherDetails: action.payload, error: null };
-      case FETCH_TEACHER_DETAILS_ERROR:
-        return { ...state, error: action.payload };
-      case USER_LOGOUT:
-        return {
-          ...initialState, // Reset the state to the initial state
-        };
-        case STUDENT_CREATE_SUCCESS:
-          return {
-            ...state,
-            minimalStudents: [...state.students, action.payload],
-            loading: false,
-            error: null,
-          };
-        case STUDENT_CREATE_ERROR:
-          return {
-            ...state,
-            loading: false,
-            error: action.payload,
-          };
+    case FETCH_MINIMAL_STUDENTS_SUCCESS:
+      return { ...state, minimalStudents: action.payload, error: null, status: action.payload.status };
+    case FETCH_MINIMAL_STUDENTS_ERROR:
+      return { ...state, error: action.payload, status: action.payload.status };
+    case FETCH_MINIMAL_TEACHERS_SUCCESS:
+      return { ...state, minimalTeachers: action.payload, error: null, status: action.payload.status };
+    case FETCH_MINIMAL_TEACHERS_ERROR:
+      return { ...state, error: action.payload, status: action.payload.status };
+    case FETCH_STUDENT_DETAILS_SUCCESS:
+      return { ...state, studentDetails: action.payload, error: null, status: action.payload.status };
+    case FETCH_STUDENT_DETAILS_ERROR:
+      return { ...state, error: action.payload, status: action.payload.status };
+    case FETCH_TEACHER_DETAILS_SUCCESS:
+      return { ...state, teacherDetails: action.payload, error: null, status: action.payload.status };
+    case FETCH_TEACHER_DETAILS_ERROR:
+      return { ...state, error: action.payload, status: action.payload.status };
+    case USER_LOGOUT:
+      return {
+        ...initialState, // Reset the state to the initial state
+      };
+    case STUDENT_CREATE_SUCCESS:
+      return {
+        ...state,
+        minimalStudents: [...state.minimalStudents, action.payload],
+        loading: false,
+        error: null,
+        status: action.payload.status,
+      };
+    case STUDENT_CREATE_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+        status: action.payload.status,
+      };
+
+    case TEACHER_CREATE_SUCCESS:
+      return {
+        ...state,
+        minimalTeachers: [...state.minimalTeachers, action.payload],
+        loading: false,
+        error: null,
+        status: action.payload.status,
+      };
+    case TEACHER_CREATE_ERROR:
+      return {
+        ...state,
+        loading: false,
+        error: action.payload,
+        status: action.payload.status,
+      };
     // Default Case
     default:
       return state;

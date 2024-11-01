@@ -13,7 +13,7 @@ function Teachers() {
     <div className="p-6 w-full h-full">
 
       {/* Add Teacher Button */}
-      <Link to="/add-teacher" className="   flex justify-end mb-4 no-underline">
+      <Link to="/home/add-teacher" className="   flex justify-end mb-4 no-underline">
             <div className="px-4 py-2 gap-[6px] rounded-lg hover:bg-blue25 justify-center items-center transition duration-200  text-white  bg-blue50 flex flex-row">
                 <img src={add} alt='add course' className='w-[11px]'/> Add Teacher
             </div>

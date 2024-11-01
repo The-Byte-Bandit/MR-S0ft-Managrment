@@ -21,6 +21,14 @@ const ClassSchema = new mongoose.Schema({
             type: mongoose.Schema.Types.ObjectId, ref: 'User' 
         }
     ],
+    isActive: { 
+      type: Boolean, 
+      default: true 
+    },
+    isOngoing: { 
+      type: Boolean, 
+      default: false 
+    },
     duration: { 
         type: Number 
     }, 

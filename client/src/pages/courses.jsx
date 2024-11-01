@@ -9,12 +9,14 @@ import { add } from '../constants/constant';
 function Courses() {
   // Assume courses are stored in Redux state under state.course.courses
   const courses = useSelector((state) => state.user.courses);
+  console.log(courses);
+  
 
   return (
     <div className="p-6 w-full h-full">
 
 
-        <Link to="/add-course" className="   flex justify-end mb-4 no-underline">
+        <Link to="/home/add-course" className="   flex justify-end mb-4 no-underline">
             <div className="px-4 py-2 gap-[6px] rounded-lg hover:bg-blue25 justify-center items-center transition duration-200  text-white  bg-blue50 flex flex-row">
                 <img src={add} alt='add course' className='w-[11px]'/> Add Course
             </div>

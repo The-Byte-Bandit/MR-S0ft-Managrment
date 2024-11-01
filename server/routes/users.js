@@ -13,6 +13,8 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
     // Check if a student with the same email already exists
     const existingStudent = await Student.findOne({ email });
     if (existingStudent) {
+      console.log('Student with this email already exists');
+      
       return res.status(400).json({ message: 'Student with this email already exists' });
     }
 

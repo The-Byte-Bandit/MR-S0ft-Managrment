@@ -18,7 +18,7 @@ function StudentCard({ students }) {
     <div className=" ">
       {/* students List */}
       <div className="space-y-4">
-        {students.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((students) => (
+        {students?.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((students) => (
           <div
             key={students._id}
             className="flex items-center bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-200"

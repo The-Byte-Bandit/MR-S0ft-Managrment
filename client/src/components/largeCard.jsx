@@ -2,7 +2,7 @@ import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { arrowRightDoubleLine, arrowLeftDoubleLine, arrowLeftSLine, arrowRightSLine } from '../constants/constant';
 
-function LargeCardTwo({ courses }) {
+function LargeCardTwo({ courses = [] }) { // Set a default empty array for courses
   const [page, setPage] = useState(1);
   const itemsPerPage = 8;
   const totalPages = Math.ceil(courses.length / itemsPerPage);
@@ -17,7 +17,7 @@ function LargeCardTwo({ courses }) {
     <div className=" ">
       {/* Course List */}
       <div className="space-y-4">
-        {courses.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((course) => (
+        {Array.isArray(courses) && courses.slice((page - 1) * itemsPerPage, page * itemsPerPage).map((course) => ( // Ensure courses is an array
           <div
             key={course.id}
             className="flex items-center bg-white p-4 rounded-lg shadow-md hover:shadow-lg transition duration-200"
@@ -27,7 +27,7 @@ function LargeCardTwo({ courses }) {
             </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-800 truncate">{course.title}</h3>
-              <p className="text-gray-600 text-sm">{course.description || 'No description available'}</p>
+              <p className="text-gray-600 text-sm">{course?.description || 'No description available'}</p>
             </div>
             <button className="ml-auto bg-blue50 text-white px-4 py-1 rounded-[8px] hover:bg-blue25 transition">
               View Details
