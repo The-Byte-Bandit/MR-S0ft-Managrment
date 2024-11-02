@@ -76,6 +76,13 @@ export const CLEAR_LOADING = "CLEAR_LOADING"
 export const RESET_ERROR = "RESET_ERROR"
 export const RESET_STATUS = "RESET_STATUS"
 
+//Delete Course
+export const DELETE_COURSE_SUCCESS = 'DELETE_COURSE_SUCCESS';
+export const DELETE_COURSE_ERROR = 'DELETE_COURSE_ERROR';
+
+//fetch single cours
+export const COURSE_FETCH_SUCCESS = 'COURSE_FETCH_SUCCESS'
+export const COURSE_FETCH_ERROR = 'COURSE_FETCH_ERROR'
 
 
 //Logout

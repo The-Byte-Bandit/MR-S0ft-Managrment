@@ -40,6 +40,8 @@ import {
   STUDENT_CREATE_ERROR,
   TEACHER_CREATE_SUCCESS,
   TEACHER_CREATE_ERROR,
+  COURSE_FETCH_SUCCESS,
+  COURSE_FETCH_ERROR,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -169,6 +171,24 @@ export const updateCourse = (courseId, updatedData, token) => async (dispatch) =
   }
 };
 
+// Fetch Course by ID Action
+export const fetchCourseById = (courseId, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/course/${courseId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: COURSE_FETCH_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({
+      type: COURSE_FETCH_ERROR,
+      payload: error.response?.data.message || 'Failed to fetch course',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
 // Delete Course Action
 export const deleteCourse = (courseId, token) => async (dispatch) => {
   try {
@@ -186,17 +206,16 @@ export const deleteCourse = (courseId, token) => async (dispatch) => {
     clearLoading(dispatch);
   }
 };
-
 // Create Class Action
 export const createClass = (classData, token) => async (dispatch) => {
   try {
     setLoading(dispatch);
-    const response = await axios.post(`${BASE_URL}/classes/create`, classData, {
+    const response = await axios.post(`${BASE_URL}/class/create`, classData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({
       type: CLASS_CREATE_SUCCESS,
-      payload: response.data.class,
+      payload: { ...response.data, status: response.status },
     });
   } catch (error) {
     dispatch({

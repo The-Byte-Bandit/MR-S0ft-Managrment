@@ -69,6 +69,21 @@ router.delete('/:id',authenticateUser, verifyRole(['admin', 'course_advisor']), 
   }
 });
 
+
+// Get a course by ID
+router.get('/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.id);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    res.json(course);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 // Get all courses
 router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {

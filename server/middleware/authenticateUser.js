@@ -48,10 +48,9 @@ const authenticateUser = (req, res, next) => {
     console.log('next')
     next(); // Proceed to the next middleware or route handler
   } catch (error) {
-    const v = process.env.JWT_SECRET
-    console.log(v);
+    console.log(error);
     
-    res.status(401).json({ message: 'Token is not valid', error,  v});
+    res.status(401).json({ message: 'Token is not valid', error});
   }
 };
 

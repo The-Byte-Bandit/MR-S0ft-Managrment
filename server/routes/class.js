@@ -9,6 +9,8 @@ const authenticateUser = require('../middleware/authenticateUser');
 // Create a new class
 router.post('/create', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
     const { courseId,title, teachers, startDate, endDate } = req.body;
+    console.log(req.body);
+    
   
     try {
       // Validate if the teachers array is provided and is not empty

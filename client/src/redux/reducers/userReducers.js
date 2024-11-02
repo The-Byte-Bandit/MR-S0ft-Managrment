@@ -48,6 +48,10 @@ import {
   STUDENT_CREATE_ERROR,
   TEACHER_CREATE_SUCCESS,
   TEACHER_CREATE_ERROR,
+  // COURSE_DELETE_SUCCESS,
+  // COURSE_DELETE_ERROR,
+  COURSE_FETCH_SUCCESS,
+  COURSE_FETCH_ERROR,
 } from '../actionTypes';
 
 const initialState = {
@@ -129,7 +133,7 @@ const reducer = (state = initialState, action) => {
     case COURSE_CREATE_SUCCESS:
       return {
         ...state,
-        courses: [...state.courses, action.payload],
+        courses: [...state.courses, action.payload.course],
         status: action.payload.status,
         error: null,
       };
@@ -328,6 +332,15 @@ const reducer = (state = initialState, action) => {
         error: action.payload,
         status: action.payload.status,
       };
+      return { ...state, loading: false };
+      case COURSE_FETCH_SUCCESS:
+        return { ...state, course: action.payload, error: null };
+      case COURSE_FETCH_ERROR:
+        return { ...state, error: action.payload };
+      // case COURSE_DELETE_SUCCESS:
+      //   return { ...state, course: null, status: 204, error: null }; // After deletion, clear the course from state
+      // case COURSE_DELETE_ERROR:
+      //   return { ...state, error: action.payload };
     // Default Case
     default:
       return state;

@@ -26,6 +26,12 @@ const  userID = localStorage.getItem('userId')
 // constants/constant.js
 export const sideNavLinks = [
     {
+        id: "dashboard",
+        title: "Dashboard",
+        url: "dashboard",
+        roles: ["admin"]
+    },
+    {
         id: "courses",
         title: "Courses",
         url: "courses",
