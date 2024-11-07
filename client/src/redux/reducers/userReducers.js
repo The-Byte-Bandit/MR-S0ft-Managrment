@@ -35,8 +35,8 @@ import {
   FETCH_MINIMAL_STUDENTS_ERROR,
   FETCH_MINIMAL_TEACHERS_SUCCESS,
   FETCH_MINIMAL_TEACHERS_ERROR,
-  FETCH_TEACHER_DETAILS_SUCCESS,
-  FETCH_TEACHER_DETAILS_ERROR,
+  FETCH_USER_DETAILS_SUCCESS,
+  FETCH_USER_DETAILS_ERROR,
   FETCH_STUDENT_DETAILS_SUCCESS,
   FETCH_STUDENT_DETAILS_ERROR,
   SET_LOADING,
@@ -46,22 +46,32 @@ import {
   USER_LOGOUT,
   STUDENT_CREATE_SUCCESS,
   STUDENT_CREATE_ERROR,
-  TEACHER_CREATE_SUCCESS,
-  TEACHER_CREATE_ERROR,
+  USER_CREATE_SUCCESS,
+  USER_CREATE_ERROR,
   // COURSE_DELETE_SUCCESS,
   // COURSE_DELETE_ERROR,
   COURSE_FETCH_SUCCESS,
   COURSE_FETCH_ERROR,
+  FETCH_USERS_REQUEST,
+  FETCH_USERS_SUCCESS,
+  FETCH_USERS_FAILURE,
 } from '../actionTypes';
 
 const initialState = {
   user: null, // Object with data from login or signup
+  groupedUsers: {
+    Admin: [],
+    'Course Advisor': [],
+    Teacher: [],
+    Student: []
+  },
   courses: [], // Array of objects
   classes: [], // Array of objects
   minimalStudents: [],
-  minimalTeachers: [],
+  minimalTeachers:[],
+  minimalUsers: [],
   studentDetails: null,
-  teacherDetails: null,
+  userDetails: null,
   testResults: [], // Array of objects
   loading: false, // Boolean to indicate loading state
   error: null, // Error message, if any
@@ -293,9 +303,9 @@ const reducer = (state = initialState, action) => {
       return { ...state, studentDetails: action.payload, error: null, status: action.payload.status };
     case FETCH_STUDENT_DETAILS_ERROR:
       return { ...state, error: action.payload, status: action.payload.status };
-    case FETCH_TEACHER_DETAILS_SUCCESS:
+    case FETCH_USER_DETAILS_SUCCESS:
       return { ...state, teacherDetails: action.payload, error: null, status: action.payload.status };
-    case FETCH_TEACHER_DETAILS_ERROR:
+    case FETCH_USER_DETAILS_ERROR:
       return { ...state, error: action.payload, status: action.payload.status };
     case USER_LOGOUT:
       return {
@@ -317,22 +327,22 @@ const reducer = (state = initialState, action) => {
         status: action.payload.status,
       };
 
-    case TEACHER_CREATE_SUCCESS:
+    case USER_CREATE_SUCCESS:
       return {
         ...state,
-        minimalTeachers: [...state.minimalTeachers, action.payload],
+        minimalUsers: [...state.minimalUsers, action.payload],
         loading: false,
         error: null,
         status: action.payload.status,
       };
-    case TEACHER_CREATE_ERROR:
+    case USER_CREATE_ERROR:
       return {
         ...state,
         loading: false,
         error: action.payload,
         status: action.payload.status,
       };
-      return { ...state, loading: false };
+      // return { ...state, loading: false };
       case COURSE_FETCH_SUCCESS:
         return { ...state, course: action.payload, error: null };
       case COURSE_FETCH_ERROR:
@@ -342,6 +352,15 @@ const reducer = (state = initialState, action) => {
       // case COURSE_DELETE_ERROR:
       //   return { ...state, error: action.payload };
     // Default Case
+
+    case FETCH_USERS_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case FETCH_USERS_SUCCESS:
+      return { ...state, loading: false, groupedUsers: action.payload };
+
+    case FETCH_USERS_FAILURE:
+      return { ...state, loading: false, error: action.payload };
     default:
       return state;
   }

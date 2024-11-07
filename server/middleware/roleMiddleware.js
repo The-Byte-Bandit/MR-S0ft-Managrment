@@ -4,7 +4,7 @@ const verifyRole = (allowedRoles) => {
       try {
         // Extract the user role from the decoded token attached to req.user
         const userRole = req.user.role;
-        console.log('rolling');
+        console.log('rolling', allowedRoles);
   
         // Check if the user's role is in the allowedRoles array
         if (!allowedRoles.includes(userRole)) {

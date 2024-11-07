@@ -36,7 +36,7 @@ function Courses() {
 
       {/* List of Courses */}
       <section>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Available Courses</h2>
+        <h1  className="text-2xl font-bold text-gray-700">Available Courses</h1>
         {courses && courses.length > 0 ? (
           <LargeCard courses={courses} />
         ) : (

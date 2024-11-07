@@ -20,7 +20,7 @@ function SideNav() {
   
 
   useEffect(() => {
-    if (user && (user.role === 'admin' || user.role === 'course-advisor')) {
+    if (user && (user.role === 'admin' || user.role === 'course_advisor')) {
       // Fetch courses for admin or course-advisor roles
       dispatch(fetchCourses(token));
       dispatch(fetchMinimalStudents(token));

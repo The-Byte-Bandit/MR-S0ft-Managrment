@@ -56,6 +56,12 @@ export const sideNavLinks = [
         roles: ["admin", "course_advisor"]
     },
     {
+        id: "users",
+        title: "Users",
+        url: "users",
+        roles: ["admin", "course_advisor"]
+    },
+    {
         id: "logout",
         title: "Logout",
         url: "logout",

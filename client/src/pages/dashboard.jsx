@@ -29,9 +29,11 @@ function Dashboard() {
   // Prepare data for the charts
   const classData = courses.map((course) => ({
     name: course.title,
-    classes: classes.filter((cls) => cls.course === course._id).length,
+    classes: classes.filter((cls) => cls.courseId === course._id).length,
   }));
 
+  console.log(classData);
+  
   const studentTeacherData = [
     { name: 'Students', value: totalStudents },
     { name: 'Teachers', value: totalTeachers },
@@ -42,7 +44,7 @@ function Dashboard() {
   return (
     <div className="w-full p-4 sm:p-6 lg:p-8">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
-      <h1 className="text-3xl font-semibold mb-6 text-blue50">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-700">Dashboard</h1>
 
       {/* Top-level Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">

@@ -34,7 +34,7 @@ const authenticateUser = (req, res, next) => {
   const authHeader = req.header('Authorization');
 
   if (!authHeader) {
-    console.log('student', req.body);
+    console.log('student', req.header('Authorization'));
     
     return res.status(401).json({ message: 'No token provided, authorization denied' });
   }

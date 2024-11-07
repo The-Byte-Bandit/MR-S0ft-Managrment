@@ -6,9 +6,7 @@ const AdminPrivateRoute = ({ children }) => {
 
   const role = useSelector((state) => state.user?.user.user.role);
 
-  
-
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'course_advisor') {
     return <Navigate to="/home/classes" />;
   }
 

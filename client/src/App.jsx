@@ -15,6 +15,9 @@ import AddTeacher from "./pages/addTeacher";
 import AddCourse from "./pages/addCourse";
 import AddClass from "./pages/addClass";
 import CourseDetail from "./pages/courseDetails";
+import Users from "./pages/users";
+import AddUser from "./pages/addUser";
+import UserDetails from "./pages/userDetails";
 
 function App() {
   return (
@@ -33,6 +36,11 @@ function App() {
             <Route path="add-teacher" element={<AdminPrivateRoute><AddTeacher /></AdminPrivateRoute>}/>
             <Route path="add-course" element={<AdminPrivateRoute><AddCourse /></AdminPrivateRoute>}/>
             <Route path="add-class" element={<AdminPrivateRoute><AddClass /></AdminPrivateRoute>}/>
+            <Route path="users" element={<AdminPrivateRoute><Users /></AdminPrivateRoute>}/>
+            <Route path="add-user" element={<AdminPrivateRoute><AddUser /></AdminPrivateRoute>}/>
+            <Route path="user-details/:role/:id" element={<AdminPrivateRoute><UserDetails /></AdminPrivateRoute>}/>
+            
+            
           </Route>
 
           {/* Public routes for sign-in and sign-up */}

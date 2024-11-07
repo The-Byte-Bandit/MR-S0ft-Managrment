@@ -30,7 +30,7 @@ function Classes() {
 
       {/* List of Classes */}
       <div>
-        <h2 className="text-lg font-semibold mb-4">Available Classes</h2>
+        <h1 className="text-2xl font-bold text-gray-700">Available Classes</h1>
         <ClasssCard
           classses={classes} // Reusing LargeCard for classes
         />

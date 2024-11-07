@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
+const Class = require('../models/class');
 const verifyRole = require('../middleware/roleMiddleware');
 const authenticateUser = require('../middleware/authenticateUser');
 const Student = require('../models/student');
@@ -48,44 +49,44 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
 });
 
 // Create a new teacher account
-router.post('/create-teacher', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
-  const { firstname, lastname, email, password, classes } = req.body;
+router.post('/create-user', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { firstname, lastname, email, password, classes, role } = req.body;
 
   try {
-    // Check if a teacher with the same email already exists
-    const existingTeacher = await User.findOne({ email });
-    if (existingTeacher) {
-      return res.status(400).json({ message: 'Teacher with this email already exists' });
+    // Check if a user with the same email already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    // Initialize an empty array to store valid class IDs
-    const teacherClasses = [];
-
-    // Loop through the incoming classes array and add each to the teacherClasses array
-    if (Array.isArray(classes)) {
-      for (const classId of classes) {
-        teacherClasses.push(classId);
+    // Initialize an empty array to store valid class IDs for roles that require it
+    let userClasses = [];
+    if (role === 'teacher' || role === 'student') {
+      // Only Teacher and Student roles have classes assigned
+      if (Array.isArray(classes)) {
+        userClasses = classes;
       }
     }
 
-    // Create a new teacher using the User model
-    const newTeacher = new User({
+    // Create a new user with the specified role and additional fields
+    const newUser = new User({
       firstname,
       lastname,
       email,
-      password, // Store password as plain text (NOT RECOMMENDED)
-      role: 'teacher',
-      classes: teacherClasses, // Set the array of class IDs
+      password, // Remember to hash the password in production for security
+      role,
+      classes: userClasses, // Only Teachers and Students will have classes
     });
 
-    // Save the new teacher to the database
-    await newTeacher.save();
-    res.status(201).json({ message: 'Teacher created successfully', teacher: newTeacher });
+    // Save the new user to the database
+    await newUser.save();
+    res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Deactivate a student account
 router.put('/:id/deactivate',authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
@@ -180,24 +181,84 @@ router.get('/students/:id', authenticateUser, verifyRole(['admin', 'course_advis
 });
 
 // Get full data for a specific teacher by ID
-router.get('/teachers/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+router.get('/getUser/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+
+  
   try {
-    const teacher = await User.findById(req.params.id)
+    const user = await User.findById(req.params.id)
       .populate({
         path: 'classes',
-        select: 'title _id', // Fetch class titles and IDs only
+        select: 'title _id', // Fetch class titles and IDs only if classes exist
       });
 
-    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+    if (!user) return res.status(404).json({ message: 'User not found' });
 
     res.json({
-      teacherId: teacher._id,
-      teacherName: `${teacher.firstname} ${teacher.lastname}`,
-      classes: teacher.classes.map(classItem => ({
+      userId: user._id,
+      userName: `${user.firstname} ${user.lastname}`,
+      role: user.role,
+      email: user.email,
+      classes: user.classes ? user.classes.map(classItem => ({
         classId: classItem._id,
         className: classItem.title,
-      })),
+      })) : [],
     });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+// Route to get all users grouped by role
+router.get('/all', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  console.log('getting all users');
+
+  try {
+    // Retrieve users and select only the ID, firstname, lastname, and role fields
+    const users = await User.find({}, 'firstname lastname role');
+    const students = await Student.find({}, 'firstname lastname'); // Fetch students with selected fields
+
+    // Group users by role
+    const groupedUsers = {
+      Admin: [],
+      'Course Advisor': [],
+      Teacher: [],
+      Student: []
+    };
+
+    // Process non-student users
+    users.forEach(user => {
+      const userData = {
+        id: user._id,
+        name: `${user.firstname} ${user.lastname}`
+      };
+
+      switch (user.role) {
+        case 'admin':
+          groupedUsers.Admin.push(userData);
+          break;
+        case 'course_advisor':
+          groupedUsers['Course Advisor'].push(userData);
+          break;
+        case 'teacher':
+          groupedUsers.Teacher.push(userData);
+          break;
+        default:
+          break;
+      }
+    });
+
+    // Add students to the Student group
+    students.forEach(student => {
+      const studentData = {
+        id: student._id,
+        name: `${student.firstname} ${student.lastname}`
+      };
+      groupedUsers.Student.push(studentData);
+    });
+
+    res.json(groupedUsers);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

@@ -226,6 +226,8 @@ router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'co
 
 
   router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
+    console.log(req.user.role);
+    
     try {
       let classes;
   

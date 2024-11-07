@@ -32,16 +32,19 @@ import {
   FETCH_MINIMAL_STUDENTS_ERROR,
   FETCH_MINIMAL_TEACHERS_SUCCESS,
   FETCH_MINIMAL_TEACHERS_ERROR,
-  FETCH_TEACHER_DETAILS_SUCCESS,
-  FETCH_TEACHER_DETAILS_ERROR,
+  FETCH_USER_DETAILS_SUCCESS,
+  FETCH_USER_DETAILS_ERROR,
   FETCH_STUDENT_DETAILS_SUCCESS,
   FETCH_STUDENT_DETAILS_ERROR,
   STUDENT_CREATE_SUCCESS,
   STUDENT_CREATE_ERROR,
-  TEACHER_CREATE_SUCCESS,
-  TEACHER_CREATE_ERROR,
+  USER_CREATE_SUCCESS,
+  USER_CREATE_ERROR,
   COURSE_FETCH_SUCCESS,
   COURSE_FETCH_ERROR,
+  FETCH_USERS_REQUEST,
+  FETCH_USERS_SUCCESS,
+  FETCH_USERS_FAILURE,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -348,25 +351,32 @@ export const fetchMinimalTeachers = (token) => async (dispatch) => {
     clearLoading(dispatch);
   }
 };
-export const fetchTeacherDetails = (teacherId, token) => async (dispatch) => {
+
+export const fetchUserDetails = (userId, token) => async (dispatch) => {
+  console.log(userId, token);
+  
   try {
     setLoading(dispatch);
-    const response = await axios.get(`${BASE_URL}/teachers/${teacherId}`, {
+    const response = await axios.get(`${BASE_URL}/user/getUser/${userId}`, {  // Ensure userId is part of the URL
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({
-      type: FETCH_TEACHER_DETAILS_SUCCESS,
+      type: FETCH_USER_DETAILS_SUCCESS,
       payload: response.data,
     });
+    console.log(response.data);
   } catch (error) {
+    console.log(error.response?.data.message);
     dispatch({
-      type: FETCH_TEACHER_DETAILS_ERROR,
-      payload: error.response?.data.message || 'Fetching teacher details failed',
+      type: FETCH_USER_DETAILS_ERROR,
+      payload: error.response?.data.message || 'Fetching user details failed',
     });
   } finally {
     clearLoading(dispatch);
   }
 };
+
+
 
 export const fetchStudentDetails = (studentId, token) => async (dispatch) => {
   try {
@@ -388,6 +398,27 @@ export const fetchStudentDetails = (studentId, token) => async (dispatch) => {
   }
 };
 
+
+// Action to fetch users
+export const fetchUsers = () => async (dispatch, getState) => {
+  dispatch({ type: FETCH_USERS_REQUEST });
+  const token = getState().user.user.token;
+
+  try {
+    const response = await axios.get(`${BASE_URL}/user/all`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    dispatch({
+      type: FETCH_USERS_SUCCESS,
+      payload: response.data // Ensure this is the grouped object
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_USERS_FAILURE,
+      payload: error.response?.data.message || 'Failed to fetch users'
+    });
+  }
+};
 
 export const createStudent = (studentData, token) => async (dispatch) => {
   try {
@@ -416,22 +447,24 @@ export const createStudent = (studentData, token) => async (dispatch) => {
   }
 };
 
-export const createTeacher = (teacheerData, token) => async (dispatch) => {
+export const createTeacher = (userData, token) => async (dispatch) => {
+  console.log(userData);
+  
   try {
     setLoading(dispatch);
     
-    const response = await axios.post(`${BASE_URL}/user/create-teacher`, teacheerData, {
+    const response = await axios.post(`${BASE_URL}/user/create-user`, userData, {
       headers: { Authorization: `Bearer ${token}` },
     });
     
     dispatch({
-      type: TEACHER_CREATE_SUCCESS,
+      type: USER_CREATE_SUCCESS,
       payload: { ...response.data, status: response.status },
     });
     console.log(response.status);
   } catch (error) {
     dispatch({
-      type: TEACHER_CREATE_ERROR,
+      type: USER_CREATE_ERROR,
       payload: error.response?.data.message || 'Teacher creation failed',
     });
     console.log(error);
