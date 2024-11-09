@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { toast } from 'react-toastify';
 import {
   USER_SIGNUP_SUCCESS,
   USER_SIGNUP_ERROR,
@@ -45,6 +46,13 @@ import {
   FETCH_USERS_REQUEST,
   FETCH_USERS_SUCCESS,
   FETCH_USERS_FAILURE,
+  DEACTIVATE_USER_SUCCESS,
+  DEACTIVATE_USER_REQUEST,
+  DEACTIVATE_USER_ERROR,
+  UPLOAD_MATERIAL_SUCCESS,
+  UPLOAD_MATERIAL_ERROR,
+  FETCH_MATERIALS_SUCCESS,
+  FETCH_MATERIALS_ERROR,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -357,7 +365,7 @@ export const fetchUserDetails = (userId, token) => async (dispatch) => {
   
   try {
     setLoading(dispatch);
-    const response = await axios.get(`${BASE_URL}/user/getUser/${userId}`, {  // Ensure userId is part of the URL
+    const response = await axios.get(`${BASE_URL}/user/${userId}/getUser`, {  // Ensure userId is part of the URL
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({
@@ -381,14 +389,17 @@ export const fetchUserDetails = (userId, token) => async (dispatch) => {
 export const fetchStudentDetails = (studentId, token) => async (dispatch) => {
   try {
     setLoading(dispatch);
-    const response = await axios.get(`${BASE_URL}/students/${studentId}`, {
+    const response = await axios.get(`${BASE_URL}/user/${studentId}/students`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({
       type: FETCH_STUDENT_DETAILS_SUCCESS,
       payload: response.data,
     });
+    console.log(response.data);
   } catch (error) {
+    console.log(error);
+    
     dispatch({
       type: FETCH_STUDENT_DETAILS_ERROR,
       payload: error.response?.data.message || 'Fetching student details failed',
@@ -472,6 +483,76 @@ export const createTeacher = (userData, token) => async (dispatch) => {
     clearLoading(dispatch);
   }
 };
+
+export const deactivateUser = (userId, role, token) => async (dispatch) => {
+  try {
+    dispatch({ type: DEACTIVATE_USER_REQUEST });
+
+    const response = await axios.put(
+      `${BASE_URL}/user/${userId}/deactivate`,
+      { role },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    dispatch({
+      type: DEACTIVATE_USER_SUCCESS,
+      payload: response.data,
+    });
+    console.log(response.data.message);
+    
+    toast.success(response.data.message);
+  } catch (error) {
+    console.log(error);
+    dispatch({
+      type: DEACTIVATE_USER_ERROR,
+      payload: error.response?.data.message || 'Failed to deactivate user',
+    });
+    toast.error(error.response?.data.message || 'Failed to deactivate user');
+  }
+};
+
+
+export const fetchMaterials = (courseId, token) => async (dispatch) => {
+  dispatch({ type: SET_LOADING });
+  try {
+    const response = await axios.get(`${BASE_URL}/material/${courseId}/materials`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: FETCH_MATERIALS_SUCCESS, payload: response.data });
+  } catch (error) {
+    dispatch({ type: FETCH_MATERIALS_ERROR, payload: error.response?.data.message || 'Failed to load materials' });
+    toast.error("Failed to load materials");
+  } finally {
+    dispatch({ type: CLEAR_LOADING });
+  }
+};
+
+
+export const uploadMaterial = (formData, token) => async (dispatch) => {
+  dispatch({ type: SET_LOADING });
+  try {
+    const response = await axios.post(`${BASE_URL}/material/upload`, formData, {
+      headers: { 
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    dispatch({ type: UPLOAD_MATERIAL_SUCCESS, payload: response.data });
+    toast.success("Material uploaded successfully!");
+    return true;
+  } catch (error) {
+    console.log(error);
+    
+    dispatch({ type: UPLOAD_MATERIAL_ERROR, payload: 'Failed to upload material' });
+    toast.error("Failed to upload material");
+    return false;
+  } finally {
+    dispatch({ type: CLEAR_LOADING });
+  }
+};
+
 
 export const userLogout = (navigate) => async (dispatch) => {
   // Clear localStorage and persist storage

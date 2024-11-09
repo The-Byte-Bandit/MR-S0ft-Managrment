@@ -55,6 +55,13 @@ import {
   FETCH_USERS_REQUEST,
   FETCH_USERS_SUCCESS,
   FETCH_USERS_FAILURE,
+  DEACTIVATE_USER_REQUEST,
+  DEACTIVATE_USER_SUCCESS,
+  DEACTIVATE_USER_ERROR,
+  UPLOAD_MATERIAL_SUCCESS,
+  UPLOAD_MATERIAL_ERROR,
+  FETCH_MATERIALS_SUCCESS,
+  FETCH_MATERIALS_ERROR,
 } from '../actionTypes';
 
 const initialState = {
@@ -70,6 +77,7 @@ const initialState = {
   minimalStudents: [],
   minimalTeachers:[],
   minimalUsers: [],
+  materials: [],
   studentDetails: null,
   userDetails: null,
   testResults: [], // Array of objects
@@ -300,11 +308,11 @@ const reducer = (state = initialState, action) => {
     case FETCH_MINIMAL_TEACHERS_ERROR:
       return { ...state, error: action.payload, status: action.payload.status };
     case FETCH_STUDENT_DETAILS_SUCCESS:
-      return { ...state, studentDetails: action.payload, error: null, status: action.payload.status };
+      return { ...state, studentDetails: action.payload, error: null, status: action.payload.status, userDetails:null };
     case FETCH_STUDENT_DETAILS_ERROR:
       return { ...state, error: action.payload, status: action.payload.status };
     case FETCH_USER_DETAILS_SUCCESS:
-      return { ...state, teacherDetails: action.payload, error: null, status: action.payload.status };
+      return { ...state, userDetails: action.payload, error: null, status: action.payload.status, studentDetails: null };
     case FETCH_USER_DETAILS_ERROR:
       return { ...state, error: action.payload, status: action.payload.status };
     case USER_LOGOUT:
@@ -314,7 +322,7 @@ const reducer = (state = initialState, action) => {
     case STUDENT_CREATE_SUCCESS:
       return {
         ...state,
-        minimalStudents: [...state.minimalStudents, action.payload],
+        minimalStudents: [...state.minimalStudents, action.payload.student],
         loading: false,
         error: null,
         status: action.payload.status,
@@ -361,6 +369,36 @@ const reducer = (state = initialState, action) => {
 
     case FETCH_USERS_FAILURE:
       return { ...state, loading: false, error: action.payload };
+      case DEACTIVATE_USER_REQUEST:
+        return {
+          ...state,
+          loading: true,
+          error: null,
+        };
+      case DEACTIVATE_USER_SUCCESS:
+        return {
+          ...state,
+          loading: false,
+          userDetails: action.payload.user, // Update userDetails to reflect the deactivated status
+          error: null,
+        };
+      case DEACTIVATE_USER_ERROR:
+        return {
+          ...state,
+          loading: false,
+          error: action.payload,
+        };
+        case FETCH_MATERIALS_SUCCESS:
+          return { ...state, materials: action.payload, error: null };
+    
+        case FETCH_MATERIALS_ERROR:
+          return { ...state, error: action.payload };
+    
+        case UPLOAD_MATERIAL_SUCCESS:
+          return { ...state, materials: [...state.materials, action.payload], error: null };
+    
+        case UPLOAD_MATERIAL_ERROR:
+          return { ...state, error: action.payload };
     default:
       return state;
   }

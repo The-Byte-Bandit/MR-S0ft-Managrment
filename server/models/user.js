@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema({
   },
   classes: [
     { type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Class' }
+      ref: 'Classes' }
     ],
   isActive: { 
     type: Boolean, 

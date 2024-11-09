@@ -41,13 +41,13 @@ export const sideNavLinks = [
         id: "classes",
         title: "Classes",
         url: "classes",
-        roles: ["admin", "course_advisor", "teacher", "student"]
+        roles: ["admin", "teacher", "student"]
     },
     {
         id: "teachers",
         title: "Teachers",
         url: "teachers",
-        roles: ["admin", "course_advisor"]
+        roles: ["admin"]
     },
     {
         id: "students",
@@ -59,7 +59,7 @@ export const sideNavLinks = [
         id: "users",
         title: "Users",
         url: "users",
-        roles: ["admin", "course_advisor"]
+        roles: ["admin"]
     },
     {
         id: "logout",

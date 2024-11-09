@@ -8,35 +8,57 @@ const Student = require('../models/student');
 
 // Create a new student account
 router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
-  const { firstname, lastname, email, password, classes } = req.body;
+  const { 
+    firstname, 
+    lastname, 
+    email, 
+    password, 
+    phone, 
+    address, 
+    qualification, 
+    classes, 
+    duration, 
+    trainingFee, 
+    amountPaid, 
+    balance, 
+    guardianName, 
+    guardianRelationship, 
+    guardianPhone, 
+    counselor, 
+    startDate, 
+    endDate, 
+    remark 
+  } = req.body;
   
   try {
     // Check if a student with the same email already exists
     const existingStudent = await Student.findOne({ email });
     if (existingStudent) {
-      console.log('Student with this email already exists');
-      
       return res.status(400).json({ message: 'Student with this email already exists' });
     }
 
-    // Initialize an empty array to store valid class IDs
-    const studentClasses = [];
-
-    // Loop through the incoming classes array and add each to the studentClasses array
-    if (Array.isArray(classes)) {
-      for (const classId of classes) {
-        studentClasses.push(classId);
-      }
-    }
-
-    // Create a new student using the Student model (no password hashing)
+    // Create a new student using the Student model (no password hashing for simplicity here)
     const newStudent = new Student({
       firstname,
       lastname,
       email,
       password, // Store password as plain text (NOT RECOMMENDED)
       role: 'student',
-      classes: studentClasses, // Set the array of class IDs
+      phone,
+      address,
+      qualification,
+      classes: Array.isArray(classes) ? classes : [], // Ensure classes is an array
+      duration,
+      trainingFee,
+      amountPaid,
+      balance,
+      guardianName,
+      guardianRelationship,
+      guardianPhone,
+      counselor,
+      startDate,
+      endDate,
+      remark
     });
 
     // Save the new student to the database
@@ -47,6 +69,7 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Create a new teacher account
 router.post('/create-user', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
@@ -88,12 +111,26 @@ router.post('/create-user', authenticateUser, verifyRole(['admin', 'course_advis
 });
 
 
-// Deactivate a student account
-router.put('/:id/deactivate',authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+// Deactivate a or user student account
+router.put('/:id/deactivate', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { role } = req.body;
+  console.log(role, 'sdccdc', req.params.id);
+  
+
   try {
-    await User.findByIdAndUpdate(req.params.id, { isActive: false });
-    res.json({ message: 'Student account deactivated' });
+    // Determine the model to use based on the role
+    const Model = role.toLowerCase() === 'student' ? Student : User;
+
+    // Find and update the user's isActive status to false
+    const user = await Model.findByIdAndUpdate(req.params.id, { isActive: false }, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} account deactivated`, user });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -168,10 +205,15 @@ router.get('/teachers', authenticateUser, verifyRole(['admin', 'course_advisor']
 });
 
 // Get full data for a specific student by ID
-router.get('/students/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+router.get('/:id/students', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id).populate('classes', 'title _id'); // Populate class titles
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    const student = await Student.findById(req.params.id)
+      .select('-password') // Exclude the password field
+      .populate('classes', 'title _id'); // Populate class titles and IDs only
+    
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
     
     res.json(student);
   } catch (error) {
@@ -180,12 +222,13 @@ router.get('/students/:id', authenticateUser, verifyRole(['admin', 'course_advis
   }
 });
 
-// Get full data for a specific teacher by ID
-router.get('/getUser/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
 
-  
+
+// Get full data for a specific teacher by ID
+router.get('/:id/getUser', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
     const user = await User.findById(req.params.id)
+      .select('-password') // Exclude the password field
       .populate({
         path: 'classes',
         select: 'title _id', // Fetch class titles and IDs only if classes exist
@@ -195,9 +238,12 @@ router.get('/getUser/:id', authenticateUser, verifyRole(['admin', 'course_adviso
 
     res.json({
       userId: user._id,
-      userName: `${user.firstname} ${user.lastname}`,
+      firstname: user.firstname,
+      lastname: user.lastname,
       role: user.role,
       email: user.email,
+      isActive: user.isActive,
+      createdAt: user.createdAt,
       classes: user.classes ? user.classes.map(classItem => ({
         classId: classItem._id,
         className: classItem.title,

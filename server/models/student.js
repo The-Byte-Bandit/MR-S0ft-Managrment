@@ -23,12 +23,55 @@ const StudentSchema = new mongoose.Schema({
     enum: ['student'], 
     required: true 
   },
+  phone: { 
+    type: String, 
+    required: true 
+  },
+  address: { 
+    type: String 
+  },
+  qualification: { 
+    type: String 
+  },
   classes: [
     { 
       type: mongoose.Schema.Types.ObjectId, 
-      ref: 'Class' 
+      ref: 'Classes' 
     }
   ],
+  duration: { 
+    type: String 
+  },
+  trainingFee: { 
+    type: Number 
+  },
+  amountPaid: { 
+    type: Number 
+  },
+  balance: { 
+    type: Number 
+  },
+  guardianName: { 
+    type: String 
+  },
+  guardianRelationship: { 
+    type: String 
+  },
+  guardianPhone: { 
+    type: String 
+  },
+  counselor: { 
+    type: String 
+  },
+  startDate: { 
+    type: Date 
+  },
+  endDate: { 
+    type: Date 
+  },
+  remark: { 
+    type: String 
+  },
   isActive: { 
     type: Boolean, 
     default: true 
@@ -45,8 +88,8 @@ const StudentSchema = new mongoose.Schema({
     type: Date, 
     default: null 
   },
-  returnDate:{
-    type:Date,
+  returnDate: {
+    type: Date,
     default: null
   },
   createdAt: { 
