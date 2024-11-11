@@ -225,46 +225,58 @@ router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'co
 
 
 
-  router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
-    console.log(req.user.role);
-    
-    try {
-      let classes;
-  
-      // Check the user role and fetch classes accordingly
-      if (req.user.role === 'admin' || req.user.role === 'course_advisor') {
-        // For admin or course_advisor, retrieve all classes
-        classes = await Classes.find()
-          .populate('course', 'title') // Assuming the Course model has a 'title' field
-          .populate('teachers', 'firstname lastname'); // Assuming the User model has 'firstname' and 'lastname' fields
-      } else if (req.user.role === 'teacher' || req.user.role === 'student') {
-        // For teacher or student, retrieve only their assigned classes
-        classes = await Classes.find({ teachers: req.user._id })
-          .populate('course', 'title')
-          .populate('teachers', 'firstname lastname');
+router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
+  console.log(req.user.role);
+
+  try {
+    let classes;
+
+    if (req.user.role === 'student') {
+      // Fetch student details to retrieve assigned class IDs
+      const student = await Student.findById(req.user.userId).populate('classes');
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
       }
-  
-      // Map through the classes to create a detailed response structure
-      const response = classes.map(classItem => ({
-        _id: classItem._id,
-        className: classItem.title,
-        courseName: classItem.course?.title || 'N/A',
-        courseId: classItem.course?._id || null,
-        teachers: classItem.teachers.map(teacher => ({
-          teacherName: `${teacher.firstname} ${teacher.lastname}`,
-          teacherId: teacher._id
-        })),
-        isActive:classItem.isActive,
-        startDate: classItem.startDate,
-        endDate: classItem.endDate
-      }));
-  
-      res.json({ message: 'Classes retrieved successfully', classes: response });
-    } catch (error) {
-      console.log(error);
-      res.status(500).json({ message: 'Server error', error });
+
+
+      // Fetch classes based on the student's assigned classes array
+      classes = await Classes.find({ _id: { $in: student.classes } })
+        .populate('course', 'title')
+        .populate('teachers', 'firstname lastname');
+    } else {
+      // Fetch user details to retrieve assigned class IDs for admin, course_advisor, and teacher roles
+      const user = await User.findById(req.user.userId);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+
+      // Use the classes array from the User model to retrieve relevant classes
+      classes = await Classes.find({ _id: { $in: user.classes } })
+        .populate('course', 'title')
+        .populate('teachers', 'firstname lastname');
     }
-  });
+
+    // Format the response structure
+    const response = classes.map(classItem => ({
+      _id: classItem._id,
+      className: classItem.title,
+      courseName: classItem.course?.title || 'N/A',
+      courseId: classItem.course?._id || null,
+      teachers: classItem.teachers.map(teacher => ({
+        teacherName: `${teacher.firstname} ${teacher.lastname}`,
+        teacherId: teacher._id
+      })),
+      isActive: classItem.isActive,
+      startDate: classItem.startDate,
+      endDate: classItem.endDate
+    }));
+
+    res.json({ message: 'Classes retrieved successfully', classes: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
   
   
 

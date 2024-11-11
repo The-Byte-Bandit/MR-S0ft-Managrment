@@ -26,7 +26,7 @@ function SideNav() {
       dispatch(fetchMinimalStudents(token));
       dispatch(fetchMinimalTeachers(token));
       dispatch(fetchClasses(token));
-    }else if (user && (user.role === 'student')){
+    }else if (user && (user.role === 'student' || user.role === 'teacher')){
       dispatch(fetchStudentClasses(token,user.userId));
     }
   }, [user, dispatch]);

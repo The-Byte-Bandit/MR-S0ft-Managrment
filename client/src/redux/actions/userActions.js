@@ -304,6 +304,29 @@ export const fetchStudentClasses = (token, studentId) => async (dispatch) => {
   
   try {
     setLoading(dispatch);
+    const response = await axios.get(`${BASE_URL}/class`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: FETCH_CLASSES_SUCCESS, payload: response.data.classes });
+    console.log(response.data );
+    
+  } catch (error) {
+    dispatch({
+      type: FETCH_CLASSES_ERROR,
+      payload: error.response?.data.message || 'Fetching classes failed',
+    });
+    console.log(error.response?.data);
+    
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const fetchTeacherClasses = (token, studentId) => async (dispatch) => {
+
+  
+  try {
+    setLoading(dispatch);
     const response = await axios.get(`${BASE_URL}/student/${studentId}/classes`, {
       headers: { Authorization: `Bearer ${token}` },
     });
