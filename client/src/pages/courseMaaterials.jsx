@@ -7,6 +7,8 @@ import 'react-toastify/dist/ReactToastify.css';
 function CourseMaterials() {
   const [file, setFile] = useState(null);
   const [url, setUrl] = useState('');
+  const [name, setName] = useState(''); // Title for YouTube video
+  const [uploadType, setUploadType] = useState('pdf'); // Toggle between PDF and YouTube
   const [selectedCourseId, setSelectedCourseId] = useState('');
   const dispatch = useDispatch();
   const token = useSelector((state) => state.user.user.token);
@@ -14,18 +16,14 @@ function CourseMaterials() {
   const materials = useSelector((state) => state.user.materials);
   const loading = useSelector((state) => state.user.loading);
 
-  // Fetch courses on mount
   useEffect(() => {
     dispatch(fetchCourses(token));
   }, [dispatch, token]);
 
-  // Fetch materials when course is selected
   useEffect(() => {
     if (selectedCourseId) {
       dispatch(fetchMaterials(selectedCourseId, token));
     }
-    console.log(materials);
-    
   }, [dispatch, selectedCourseId, token]);
 
   const handleFileChange = (e) => {
@@ -40,16 +38,31 @@ function CourseMaterials() {
     }
 
     const formData = new FormData();
-    if (file) formData.append('pdf', file);
+    if (uploadType === 'pdf') {
+      if (!file) {
+        toast.error("Please upload a PDF file");
+        return;
+      }
+      formData.append('pdf', file);
+      formData.append('type', 'pdf');
+    } else {
+      if (!url || !name) {
+        toast.error("Please provide both YouTube link and title");
+        return;
+      }
+      formData.append('url', url);
+      formData.append('name', name);
+      formData.append('type', 'youtube');
+    }
+
     formData.append('courseId', selectedCourseId);
-    formData.append('type', file ? 'pdf' : 'youtube');
-    formData.append('url', url);
 
     const success = await dispatch(uploadMaterial(formData, token));
     if (success) {
-      dispatch(fetchMaterials(selectedCourseId, token)); // Refresh materials
+      dispatch(fetchMaterials(selectedCourseId, token));
       setFile(null);
       setUrl('');
+      setName('');
     }
   };
 
@@ -77,23 +90,59 @@ function CourseMaterials() {
           </select>
         </div>
 
+        {/* Upload Type Selection */}
+        <div className="mb-4 flex space-x-4">
+          <button
+            type="button"
+            onClick={() => setUploadType('pdf')}
+            className={`px-4 py-2 rounded-lg ${
+              uploadType === 'pdf' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            PDF
+          </button>
+          <button
+            type="button"
+            onClick={() => setUploadType('youtube')}
+            className={`px-4 py-2 rounded-lg ${
+              uploadType === 'youtube' ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            YouTube
+          </button>
+        </div>
+
         {/* Upload Form */}
         <form onSubmit={handleUpload} className="space-y-4 mb-8">
-          <div className="flex flex-col space-y-2">
-            <label className="text-gray-700 font-semibold">Upload PDF</label>
-            <input type="file" accept=".pdf" onChange={handleFileChange} />
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <label className="text-gray-700 font-semibold">YouTube URL</label>
-            <input
-              type="url"
-              className="form-control p-3 border rounded-lg"
-              placeholder="Enter YouTube link"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
-          </div>
+          {uploadType === 'pdf' ? (
+            <div className="flex flex-col space-y-2">
+              <label className="text-gray-700 font-semibold">Upload PDF</label>
+              <input type="file" accept=".pdf" onChange={handleFileChange} />
+            </div>
+          ) : (
+            <>
+              <div className="flex flex-col space-y-2">
+                <label className="text-gray-700 font-semibold">YouTube Title</label>
+                <input
+                  type="text"
+                  className="form-control p-3 border rounded-lg"
+                  placeholder="Enter video title"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+              <div className="flex flex-col space-y-2">
+                <label className="text-gray-700 font-semibold">YouTube URL</label>
+                <input
+                  type="url"
+                  className="form-control p-3 border rounded-lg"
+                  placeholder="Enter YouTube link"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                />
+              </div>
+            </>
+          )}
 
           <button
             type="submit"
@@ -115,16 +164,21 @@ function CourseMaterials() {
                 <li key={material._id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
                   <span className="truncate">
                     {material.type === 'pdf' ? (
-                      <a href={material.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                      <a
+                        href={`http://localhost:5000${material.url}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
                         View PDF
                       </a>
                     ) : (
                       <a href={material.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                        Watch Video
+                        {material.name || 'Watch Video'}
                       </a>
                     )}
                   </span>
-                  <span className="text-gray-600">{material?.type?.toUpperCase()}</span>
+                  <span className="text-gray-600">{material.type.toUpperCase()}</span>
                 </li>
               ))}
             </ul>

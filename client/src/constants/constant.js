@@ -43,17 +43,17 @@ export const sideNavLinks = [
         url: "classes",
         roles: ["admin", "teacher", "student"]
     },
-    {
-        id: "teachers",
-        title: "Teachers",
-        url: "teachers",
-        roles: ["admin"]
-    },
+    // {
+    //     id: "teachers",
+    //     title: "Teachers",
+    //     url: "teachers",
+    //     roles: ["admin"]
+    // },
     {
         id: "students",
         title: "Students",
         url: "students",
-        roles: ["admin", "course_advisor"]
+        roles: ["course_advisor"]
     },
     {
         id: "users",

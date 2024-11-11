@@ -19,6 +19,7 @@ import Users from "./pages/users";
 import AddUser from "./pages/addUser";
 import UserDetails from "./pages/userDetails";
 import CourseMaterials from "./pages/courseMaaterials";
+import ViewCourseMaterials from "./pages/viewMaterial";
 
 function App() {
   return (
@@ -41,6 +42,8 @@ function App() {
             <Route path="add-user" element={<AdminPrivateRoute><AddUser /></AdminPrivateRoute>}/>
             <Route path="user-details/:role/:id" element={<AdminPrivateRoute><UserDetails /></AdminPrivateRoute>}/>
             <Route path="course-materials" element={<AdminPrivateRoute><CourseMaterials /></AdminPrivateRoute>}/>
+            <Route path="materials/:courseId" element={<ViewCourseMaterials/>} />
+
             
             
           </Route>

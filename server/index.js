@@ -12,6 +12,7 @@ const authRoute = require('./routes/auth');
 const classRoute = require('./routes/class');
 
 const app = express();
+const path = require('path');
 const port = process.env.PORT ;
 const mongoURI = process.env.MONGO_URI
 
@@ -20,6 +21,7 @@ app.use(cors());
 // app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.static("public"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use(session({
   secret: process.env.SESSION_SECRET || 'defaultsecret',  
@@ -46,6 +48,8 @@ app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).send({ message: 'Something went wrong!' });
 });
+
+
 
 // Server listener
 app.listen(port, () => {
