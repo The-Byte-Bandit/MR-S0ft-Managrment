@@ -20,6 +20,7 @@ import AddUser from "./pages/addUser";
 import UserDetails from "./pages/userDetails";
 import CourseMaterials from "./pages/courseMaaterials";
 import ViewCourseMaterials from "./pages/viewMaterial";
+import ClassDetail from "./components/classesItem";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
             <Route path="courses" element={<AdminPrivateRoute><Courses /></AdminPrivateRoute>} />
             <Route path="courses/:id" element={<AdminPrivateRoute><CourseDetail /></AdminPrivateRoute>} />
             <Route path="classes" element={<AdminPrivateRoute><Classes /></AdminPrivateRoute>} />
+            <Route path="classes/:id/:name" element={<ClassDetail/>} />
             <Route path="teachers" element={<AdminPrivateRoute><Teachers /></AdminPrivateRoute>} />
             <Route path="students" element={<AdminPrivateRoute><Students /></AdminPrivateRoute>} />
             <Route path="add-student" element={<AdminPrivateRoute><AddStudent /></AdminPrivateRoute>}/>
@@ -41,7 +43,7 @@ function App() {
             <Route path="users" element={<AdminPrivateRoute><Users /></AdminPrivateRoute>}/>
             <Route path="add-user" element={<AdminPrivateRoute><AddUser /></AdminPrivateRoute>}/>
             <Route path="user-details/:role/:id" element={<AdminPrivateRoute><UserDetails /></AdminPrivateRoute>}/>
-            <Route path="course-materials" element={<AdminPrivateRoute><CourseMaterials /></AdminPrivateRoute>}/>
+            <Route path="course-materials/:courseId" element={<CourseMaterials />}/>
             <Route path="materials/:courseId" element={<ViewCourseMaterials/>} />
 
             

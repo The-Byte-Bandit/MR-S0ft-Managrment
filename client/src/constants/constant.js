@@ -20,6 +20,9 @@ import arrowLeftSLine from "../assets/images/icons/arrow-left-s-line.svg"
 import arrowLeftDoubleLine from "../assets/images/icons/arrow-left-double-line.svg"
 import arrowRightDoubleLine from "../assets/images/icons/arrow-right-double-line.svg"
 import add from "../assets/images/icons/add.svg"
+import video2 from '../assets/images/icons/video.png'
+import pdf2 from '../assets/images/icons/pdf.png'
+import assignment from '../assets/images/icons/assignment.png'
 
 const  userID = localStorage.getItem('userId')
 
@@ -73,8 +76,11 @@ export const sideNavLinks = [
 export const BASE_URL = 'http://localhost:5000';
 
 export {
+    assignment,
     Saly,
+    pdf2,
     pdf,
+    video2,
     video,
     logout,
     empty,

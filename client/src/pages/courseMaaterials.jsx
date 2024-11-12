@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { toast, ToastContainer } from 'react-toastify';
 import { fetchCourses, fetchMaterials, uploadMaterial } from '../redux/actions/userActions';
 import 'react-toastify/dist/ReactToastify.css';
+import { useParams } from 'react-router-dom';
 
 function CourseMaterials() {
   const [file, setFile] = useState(null);
@@ -15,10 +16,14 @@ function CourseMaterials() {
   const courses = useSelector((state) => state.user.courses);
   const materials = useSelector((state) => state.user.materials);
   const loading = useSelector((state) => state.user.loading);
+  const { courseId } = useParams();
 
   useEffect(() => {
     dispatch(fetchCourses(token));
-  }, [dispatch, token]);
+    if (courseId) {
+      setSelectedCourseId(courseId);
+    }
+  }, [dispatch, token, courseId]);
 
   useEffect(() => {
     if (selectedCourseId) {
@@ -32,10 +37,6 @@ function CourseMaterials() {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!selectedCourseId) {
-      toast.error("Please select a course");
-      return;
-    }
 
     const formData = new FormData();
     if (uploadType === 'pdf') {
@@ -56,7 +57,6 @@ function CourseMaterials() {
     }
 
     formData.append('courseId', selectedCourseId);
-
     const success = await dispatch(uploadMaterial(formData, token));
     if (success) {
       dispatch(fetchMaterials(selectedCourseId, token));
@@ -72,23 +72,6 @@ function CourseMaterials() {
 
       <div className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-lg">
         <h1 className="text-2xl font-bold text-gray-700 mb-4">Course Materials</h1>
-
-        {/* Course Selection */}
-        <div className="mb-4">
-          <label className="text-gray-700 font-semibold">Select Course</label>
-          <select
-            className="form-control p-3 border rounded-lg mt-2"
-            value={selectedCourseId}
-            onChange={(e) => setSelectedCourseId(e.target.value)}
-          >
-            <option value="">Choose a course...</option>
-            {courses.map((course) => (
-              <option key={course._id} value={course._id}>
-                {course.title}
-              </option>
-            ))}
-          </select>
-        </div>
 
         {/* Upload Type Selection */}
         <div className="mb-4 flex space-x-4">
@@ -155,37 +138,37 @@ function CourseMaterials() {
 
         {/* Materials List */}
         <div>
-          <h2 className="text-xl font-semibold text-gray-700 mb-4">Available Materials</h2>
-          {loading ? (
-            <p>Loading materials...</p>
-          ) : materials?.length > 0 ? (
-            <ul className="space-y-4">
-              {materials.map((material) => (
-                <li key={material._id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
-                  <span className="truncate">
-                    {material.type === 'pdf' ? (
-                      <a
-                        href={`http://localhost:5000${material.url}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 underline"
-                      >
-                        View PDF
-                      </a>
-                    ) : (
-                      <a href={material.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
-                        {material.name || 'Watch Video'}
-                      </a>
-                    )}
-                  </span>
-                  <span className="text-gray-600">{material.type.toUpperCase()}</span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No materials available for this course.</p>
-          )}
-        </div>
+  <h2 className="text-xl font-semibold text-gray-700 mb-4">Available Materials</h2>
+  {loading ? (
+    <p>Loading materials...</p>
+  ) : materials?.length > 0 ? (
+    <ul className="space-y-4">
+      {materials.map((material) => (
+        <li key={material._id} className="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+          <span className="truncate">
+            {material.type === 'pdf' ? (
+              <a
+                href={`http://localhost:5000${material.url}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 underline"
+              >
+                View PDF
+              </a>
+            ) : (
+              <a href={material.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                {material.name || 'Watch Video'}
+              </a>
+            )}
+          </span>
+          <span className="text-gray-600">{material.type ? material.type.toUpperCase() : 'UNKNOWN'}</span>
+        </li>
+      ))}
+    </ul>
+  ) : (
+    <p>No materials available for this course.</p>
+  )}
+</div>
       </div>
     </div>
   );

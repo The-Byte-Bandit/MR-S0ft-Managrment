@@ -67,8 +67,8 @@ function SideNav() {
                       {isDropdownOpen && (
                         <ul className='ml-[2px]'>
                           {classes?.map((classes) => (
-                            <li key={classes.id} className='py-1'>
-                              <Link to={`/home/classes/${classes.id}`} className='no-underline hover:no-underline focus:no-underline text-[10px] text-white montserrat-regular truncate'>
+                            <li key={classes.id} onClick={()=>{console.log(classes)}} className='py-1'>
+                              <Link to={`/home/classes/${classes._id}/${classes.className}`} className='no-underline hover:no-underline focus:no-underline text-[10px] text-white montserrat-regular truncate'>
                               {classes.className}
                               </Link>
                             </li>
