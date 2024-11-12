@@ -58,10 +58,15 @@ import {
   DEACTIVATE_USER_REQUEST,
   DEACTIVATE_USER_SUCCESS,
   DEACTIVATE_USER_ERROR,
+  REACTIVATE_USER_SUCCESS,
+  REACTIVATE_USER_REQUEST,
+  REACTIVATE_USER_ERROR,
   UPLOAD_MATERIAL_SUCCESS,
   UPLOAD_MATERIAL_ERROR,
   FETCH_MATERIALS_SUCCESS,
   FETCH_MATERIALS_ERROR,
+  FETCH_CLASS_DETAILS_SUCCESS,
+  FETCH_CLASS_DETAILS_ERROR,
 } from '../actionTypes';
 
 const initialState = {
@@ -74,6 +79,7 @@ const initialState = {
   },
   courses: [], // Array of objects
   classes: [], // Array of objects
+  classDetails: null,
   minimalStudents: [],
   minimalTeachers:[],
   minimalUsers: [],
@@ -223,6 +229,7 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         classes: state.classes.filter((cls) => cls._id !== action.payload),
+        classDetails: null,
         error: null,
 
       };
@@ -375,6 +382,21 @@ const reducer = (state = initialState, action) => {
           loading: true,
           error: null,
         };
+      
+        case REACTIVATE_USER_SUCCESS:
+          return {
+            ...state,
+            loading: false,
+            userDetails: action.payload.user, // Update userDetails to reflect the deactivated status
+            error: null,
+          };
+        case REACTIVATE_USER_ERROR:
+          return {
+            ...state,
+            loading: false,
+            error: action.payload,
+          };
+
       case DEACTIVATE_USER_SUCCESS:
         return {
           ...state,
@@ -399,6 +421,19 @@ const reducer = (state = initialState, action) => {
     
         case UPLOAD_MATERIAL_ERROR:
           return { ...state, error: action.payload };
+          case FETCH_CLASS_DETAILS_SUCCESS:
+            return {
+              ...state,
+              classDetails: action.payload,
+              error: null,
+            };
+      
+          case FETCH_CLASS_DETAILS_ERROR:
+            return {
+              ...state,
+              error: action.payload,
+            };
+      
     default:
       return state;
   }

@@ -5,7 +5,7 @@ import { Link, useNavigate  } from 'react-router-dom';
 import { assignment, pdf2, video2 } from '../constants/constant';
 import { useSelector, useDispatch, } from 'react-redux';
 import { fetchCourses, fetchMaterials } from '../redux/actions/userActions';
-function ClassDetail() {
+function ClassItem() {
     const dispatch = useDispatch();
     const token = useSelector((state) => state.user.user.token);
     const courses = useSelector((state) => state.user.courses);
@@ -120,4 +120,4 @@ function ClassDetail() {
     );
 };
 
-export default ClassDetail;
+export default ClassItem;

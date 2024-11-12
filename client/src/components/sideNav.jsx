@@ -25,7 +25,7 @@ function SideNav() {
       dispatch(fetchCourses(token));
       dispatch(fetchMinimalStudents(token));
       dispatch(fetchMinimalTeachers(token));
-      dispatch(fetchClasses(token));
+      dispatch(fetchClasses(token,user.userId));
     }else if (user && (user.role === 'student' || user.role === 'teacher')){
       dispatch(fetchStudentClasses(token,user.userId));
     }
@@ -65,10 +65,10 @@ function SideNav() {
                         {link.title} <img src={down_white} alt='down' className='w-[25px]'/>
                       </div>
                       {isDropdownOpen && (
-                        <ul className='ml-[2px]'>
+                        <ul className='ml-[2px] w-full'>
                           {classes?.map((classes) => (
-                            <li key={classes.id} onClick={()=>{console.log(classes)}} className='py-1'>
-                              <Link to={`/home/classes/${classes._id}/${classes.className}`} className='no-underline hover:no-underline focus:no-underline text-[10px] text-white montserrat-regular truncate'>
+                            <li key={classes.id} onClick={()=>{console.log(classes)}} className='py-1 w-full h-full'>
+                              <Link to={`/home/classes/${classes._id}/${classes.className}`} className='no-underline inline-block hover:no-underline focus:no-underline text-[10px] text-white montserrat-regular w-full h-full truncate'>
                               {classes.className}
                               </Link>
                             </li>

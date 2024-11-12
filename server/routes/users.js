@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user');
-const Class = require('../models/class');
+const Classes = require('../models/class');
 const verifyRole = require('../middleware/roleMiddleware');
 const authenticateUser = require('../middleware/authenticateUser');
 const Student = require('../models/student');
@@ -29,7 +29,7 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
     endDate, 
     remark 
   } = req.body;
-  
+
   try {
     // Check if a student with the same email already exists
     const existingStudent = await Student.findOne({ email });
@@ -37,17 +37,17 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
       return res.status(400).json({ message: 'Student with this email already exists' });
     }
 
-    // Create a new student using the Student model (no password hashing for simplicity here)
+    // Create a new student
     const newStudent = new Student({
       firstname,
       lastname,
       email,
-      password, // Store password as plain text (NOT RECOMMENDED)
+      password, // Store password as plain text (NOT RECOMMENDED in production)
       role: 'student',
       phone,
       address,
       qualification,
-      classes: Array.isArray(classes) ? classes : [], // Ensure classes is an array
+      classes: Array.isArray(classes) ? classes : [],
       duration,
       trainingFee,
       amountPaid,
@@ -63,12 +63,27 @@ router.post('/create-student', authenticateUser, verifyRole(['admin', 'course_ad
 
     // Save the new student to the database
     await newStudent.save();
+
+    // Update each class in the classes array to add the student to its students array
+    if (Array.isArray(classes) && classes.length > 0) {
+      await Promise.all(
+        classes.map(async (classId) => {
+          await Classes.findByIdAndUpdate(
+            classId,
+            { $addToSet: { students: newStudent._id } }, // Adds student to class if not already included
+            { new: true }
+          );
+        })
+      );
+    }
+
     res.status(201).json({ message: 'Student created successfully', student: newStudent });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: 'Server error' }); 
   }
 });
+
 
 
 // Create a new teacher account
@@ -82,33 +97,51 @@ router.post('/create-user', authenticateUser, verifyRole(['admin', 'course_advis
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    // Initialize an empty array to store valid class IDs for roles that require it
+    // Initialize an array for class IDs if the role is teacher or student
     let userClasses = [];
-    if (role === 'teacher' || role === 'student') {
-      // Only Teacher and Student roles have classes assigned
-      if (Array.isArray(classes)) {
-        userClasses = classes;
-      }
+    if ((role === 'teacher' || role === 'student') && Array.isArray(classes)) {
+      userClasses = classes;
     }
 
-    // Create a new user with the specified role and additional fields
+    // Create the new user with specified details
     const newUser = new User({
       firstname,
       lastname,
       email,
-      password, // Remember to hash the password in production for security
+      password, // Ensure to hash this in production for security
       role,
-      classes: userClasses, // Only Teachers and Students will have classes
+      classes: userClasses,
     });
 
     // Save the new user to the database
     await newUser.save();
+
+    // Add the user to each specified class's students or teachers array based on role
+    if (userClasses.length > 0) {
+      await Promise.all(userClasses.map(async (classId) => {
+        const classDoc = await Classes.findById(classId);
+        if (!classDoc) return; // Skip if class not found
+
+        if (role === 'student') {
+          if (!classDoc.students.includes(newUser._id)) {
+            classDoc.students.push(newUser._id); // Add student to students array
+          }
+        } else if (role === 'teacher') {
+          if (!classDoc.teachers.includes(newUser._id)) {
+            classDoc.teachers.push(newUser._id); // Add teacher to teachers array
+          }
+        }
+        await classDoc.save(); // Save each updated class document
+      }));
+    }
+
     res.status(201).json({ message: 'User created successfully', user: newUser });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 
 // Deactivate a or user student account
@@ -135,15 +168,30 @@ router.put('/:id/deactivate', authenticateUser, verifyRole(['admin', 'course_adv
   }
 });
 
-// Reactivate a student account
-router.put('/:id/reactivate',authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+// Reactivate a user or student account
+router.put('/:id/reactivate', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { role } = req.body;
+
+  
+
   try {
-    await User.findByIdAndUpdate(req.params.id, { isActive: true });
-    res.json({ message: 'Student account reactivated' });
+    // Determine the model to use based on the role
+    const Model = role.toLowerCase() === 'student' ? Student : User;
+
+    // Find and update the user's isActive status to true
+    const user = await Model.findByIdAndUpdate(req.params.id, { isActive: true }, { new: true });
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json({ message: `${role.charAt(0).toUpperCase() + role.slice(1)} account reactivated`, user });
   } catch (error) {
+    console.error(error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // // Get all students (Admin-only)
 // router.get('/get-students',authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
@@ -235,6 +283,8 @@ router.get('/:id/getUser', authenticateUser, verifyRole(['admin', 'course_adviso
       });
 
     if (!user) return res.status(404).json({ message: 'User not found' });
+    console.log(user.isActive);
+    
 
     res.json({
       userId: user._id,

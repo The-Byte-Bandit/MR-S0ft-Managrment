@@ -1,10 +1,10 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUserDetails, fetchStudentDetails, deactivateUser } from '../redux/actions/userActions';
+import { fetchUserDetails, fetchStudentDetails, deactivateUser, reActivateUser} from '../redux/actions/userActions';
 import { useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { FaUserEdit, FaBan } from 'react-icons/fa';
+import { FaUserEdit, FaBan, FaCheckCircle } from 'react-icons/fa';
 
 function UserDetails() {
   const { role, id } = useParams();
@@ -27,7 +27,12 @@ function UserDetails() {
   }, [dispatch, id, isStudent, token]);
 
   const handleDisableUser = () => {
-    dispatch(deactivateUser(id,role, token))
+    if(user.isActive){
+      dispatch(deactivateUser(id,role, token))
+    }else{
+      dispatch(reActivateUser(id,role, token))
+    }
+   
   };
 
   const handleDeferAdmission = () => {
@@ -35,6 +40,8 @@ function UserDetails() {
   };
 
   const formatValue = (key, value) => {
+    // console.log(key, value);
+    
     if (key === 'isActive') {
       return value ? 'Active' : 'Deactivated';
     }
@@ -52,6 +59,8 @@ function UserDetails() {
   };
 
   const formatKey = (key) => {
+
+    
     if (key === 'isActive') return 'Status';
     if (key === 'isDeferred') return 'Deferment Status';
     return key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
@@ -80,13 +89,19 @@ function UserDetails() {
 
             {/* Actions */}
             <div className="flex gap-4 mt-6">
-              <button
-                onClick={handleDisableUser}
-                className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-              >
-                <FaBan />
-                Disable User
-              </button>
+
+            <button
+              onClick={handleDisableUser}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg transition duration-200"
+              style={{
+                backgroundColor: user.isActive ? '#DC2626' : '#16A34A', // Red for disable, green for activate
+                color: 'white'
+              }}
+            >
+              {user.isActive ? <FaBan /> : <FaCheckCircle />}
+              {user.isActive ? 'Disable User' : 'Activate User'}
+            </button>
+
 
               {isStudent && (
                 <button

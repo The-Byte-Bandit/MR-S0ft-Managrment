@@ -60,8 +60,11 @@ router.post('/upload', upload.single('pdf'), authenticateUser, verifyRole(['admi
 
 // Get all materials for a course
 router.get('/:courseId/materials', async (req, res) => {
+  console.log(req.params.courseId );
+  
   try {
     const materials = await Material.find({ course: req.params.courseId });
+    console.log(materials);
     res.json(materials);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });

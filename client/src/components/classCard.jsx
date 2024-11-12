@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import PropTypes from 'prop-types';
 import { arrowRightDoubleLine, arrowLeftDoubleLine, arrowLeftSLine, arrowRightSLine } from '../constants/constant';
+import { Link } from 'react-router-dom';
 
 function ClasssCard({ classses }) {
   const [page, setPage] = useState(1);
@@ -30,9 +31,11 @@ function ClasssCard({ classses }) {
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-800 truncate">{classes.className}</h3>
             </div>
-            <button className="ml-auto bg-blue50 text-white px-4 py-1 rounded-[8px] hover:bg-blue25 transition">
-              View Details
-            </button>
+            <Link to={`/home/class-details/${classes._id}`}>
+              <button className="ml-auto bg-blue50 text-white px-4 py-1 rounded-[8px] hover:bg-blue25 transition">
+                View Details
+              </button>
+            </Link>
           </div>
         ))}
       </div>

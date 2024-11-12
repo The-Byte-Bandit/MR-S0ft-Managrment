@@ -49,10 +49,15 @@ import {
   DEACTIVATE_USER_SUCCESS,
   DEACTIVATE_USER_REQUEST,
   DEACTIVATE_USER_ERROR,
+  REACTIVATE_USER_SUCCESS,
+  REACTIVATE_USER_REQUEST,
+  REACTIVATE_USER_ERROR,
   UPLOAD_MATERIAL_SUCCESS,
   UPLOAD_MATERIAL_ERROR,
   FETCH_MATERIALS_SUCCESS,
   FETCH_MATERIALS_ERROR,
+  FETCH_CLASS_DETAILS_SUCCESS,
+  FETCH_CLASS_DETAILS_ERROR,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -267,7 +272,7 @@ export const updateClass = (classId, updatedData, token) => async (dispatch) => 
 export const deleteClass = (classId, token) => async (dispatch) => {
   try {
     setLoading(dispatch);
-    await axios.delete(`${BASE_URL}/classes/${classId}`, {
+    await axios.delete(`${BASE_URL}/class/${classId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     dispatch({ type: CLASS_DELETE_SUCCESS, payload: classId });
@@ -281,8 +286,28 @@ export const deleteClass = (classId, token) => async (dispatch) => {
   }
 };
 
+export const fetchClassDetails = (classId, token) => async (dispatch) => {
+  dispatch({ type: SET_LOADING, payload: true });
+  try {
+    const response = await axios.get(`${BASE_URL}/class/${classId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({
+      type: FETCH_CLASS_DETAILS_SUCCESS,
+      payload: response.data.class,
+    });
+  } catch (error) {
+    dispatch({
+      type: FETCH_CLASS_DETAILS_ERROR,
+      payload: error.response?.data.message || 'Failed to fetch class details',
+    });
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
 // Fetch Classes Action
-export const fetchClasses = (token) => async (dispatch) => {
+export const fetchClasses = (token,userId) => async (dispatch) => {
   try {
     setLoading(dispatch);
     const response = await axios.get(`${BASE_URL}/class`, {
@@ -506,6 +531,36 @@ export const createTeacher = (userData, token) => async (dispatch) => {
     clearLoading(dispatch);
   }
 };
+
+export const reActivateUser = (userId, role, token) => async (dispatch) => {
+  try {
+    dispatch({ type: REACTIVATE_USER_REQUEST });
+
+    const response = await axios.put(
+      `${BASE_URL}/user/${userId}/reactivate`,
+      { role },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    dispatch({
+      type: REACTIVATE_USER_SUCCESS,
+      payload: response.data,
+    });
+    console.log('reactivate',response.data.message);
+    
+    toast.success(response.data.message);
+  } catch (error) {
+    console.log(error);
+    dispatch({
+      type: REACTIVATE_USER_ERROR,
+      payload: error.response?.data.message || 'Failed to deactivate user',
+    });
+    toast.error(error.response?.data.message || 'Failed to deactivate user');
+  }
+};
+
 
 export const deactivateUser = (userId, role, token) => async (dispatch) => {
   try {

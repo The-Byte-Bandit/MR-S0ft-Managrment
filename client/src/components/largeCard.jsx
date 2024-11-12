@@ -33,7 +33,7 @@ function LargeCard({ courses = [] }) {
               {/* <p className="text-gray-500 text-sm mb-4">
                 {course?.description || 'No description available'}
               </p> */}
-              <Link to={`/home/materials/${course._id}`}>
+              <Link to={`/home/courses/${course._id}`}>
               {/* {`/home/user-details/${user.role}/${user.id}`} */}
               <button
               

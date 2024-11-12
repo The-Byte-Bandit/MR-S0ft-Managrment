@@ -62,6 +62,45 @@ router.post('/create', authenticateUser, verifyRole(['admin', 'course_advisor'])
     }
   });
 
+// Fetch details of a specific class
+router.get('/:id', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
+  try {
+    const classId = req.params.id;
+
+    const classDetails = await Classes.findById(classId)
+      .populate('course', 'title') // Populate course title
+      .populate('teachers', 'firstname lastname') // Populate teachers' names
+      .populate('students', 'firstname lastname'); // Populate students' names
+
+    if (!classDetails) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    const response = {
+      _id: classDetails._id,
+      className: classDetails.title,
+      courseName: classDetails.course?.title || 'N/A',
+      courseId: classDetails.course?._id || null,
+      teachers: classDetails.teachers.map(teacher => ({
+        teacherName: `${teacher.firstname} ${teacher.lastname}`,
+        teacherId: teacher._id
+      })),
+      students: classDetails.students.map(student => ({
+        studentName: `${student.firstname} ${student.lastname}`,
+        studentId: student._id
+      })),
+      isActive: classDetails.isActive,
+      startDate: classDetails.startDate,
+      endDate: classDetails.endDate,
+    };
+
+    res.json({ message: 'Class details retrieved successfully', class: response });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
 // Update class details
 router.put('/:id/update', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
     const { courseId, title, teachers, startDate, endDate } = req.body;
@@ -126,10 +165,12 @@ router.put('/:id/update', authenticateUser, verifyRole(['admin', 'course_advisor
     }
   });
 
-// Delete a course
+// Delete a class
 router.delete('/:id',authenticateUser,  verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
     await Classes.findByIdAndDelete(req.params.id);
+    console.log('Class deleted successfully' );
+    
     res.json({ message: 'Class deleted successfully' });
   } catch (error) {
     console.log(error);
@@ -225,26 +266,20 @@ router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'co
 
 
 
-router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
-  console.log(req.user.role);
 
+router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teacher', 'student']), async (req, res) => {
   try {
     let classes;
 
-    if (req.user.role === 'student') {
-      // Fetch student details to retrieve assigned class IDs
-      const student = await Student.findById(req.user.userId).populate('classes');
-      if (!student) {
-        return res.status(404).json({ message: 'Student not found' });
-      }
-
-
-      // Fetch classes based on the student's assigned classes array
-      classes = await Classes.find({ _id: { $in: student.classes } })
+    if (req.user.role === 'admin' || req.user.role === 'course_advisor') {
+      // For admin or course_advisor, retrieve all classes
+      classes = await Classes.find()
         .populate('course', 'title')
         .populate('teachers', 'firstname lastname');
-    } else {
-      // Fetch user details to retrieve assigned class IDs for admin, course_advisor, and teacher roles
+    } else if (req.user.role === 'teacher') {
+      console.log('fetch teacher class');
+      
+      // Fetch user details to retrieve assigned class IDs for teacher
       const user = await User.findById(req.user.userId);
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
@@ -252,6 +287,16 @@ router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teache
 
       // Use the classes array from the User model to retrieve relevant classes
       classes = await Classes.find({ _id: { $in: user.classes } })
+        .populate('course', 'title')
+        .populate('teachers', 'firstname lastname');
+    } else if (req.user.role === 'student') {
+      // For student, retrieve classes based on their enrolled class IDs in the Student model
+      const student = await Student.findById(req.user._id).populate('classes');
+      if (!student) {
+        return res.status(404).json({ message: 'Student not found' });
+      }
+
+      classes = await Classes.find({ _id: { $in: student.classes } })
         .populate('course', 'title')
         .populate('teachers', 'firstname lastname');
     }
