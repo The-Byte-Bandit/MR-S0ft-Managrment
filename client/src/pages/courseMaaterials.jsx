@@ -137,7 +137,7 @@ function CourseMaterials() {
         </form>
 
         {/* Materials List */}
-        <div>
+        {/* <div>
   <h2 className="text-xl font-semibold text-gray-700 mb-4">Available Materials</h2>
   {loading ? (
     <p>Loading materials...</p>
@@ -168,7 +168,7 @@ function CourseMaterials() {
   ) : (
     <p>No materials available for this course.</p>
   )}
-</div>
+</div> */}
       </div>
     </div>
   );

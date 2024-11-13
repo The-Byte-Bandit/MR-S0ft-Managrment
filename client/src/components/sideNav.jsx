@@ -68,7 +68,7 @@ function SideNav() {
                         <ul className='ml-[2px] w-full'>
                           {classes?.map((classes) => (
                             <li key={classes.id} onClick={()=>{console.log(classes)}} className='py-1 w-full h-full'>
-                              <Link to={`/home/classes/${classes._id}/${classes.className}`} className='no-underline inline-block hover:no-underline focus:no-underline text-[10px] text-white montserrat-regular w-full h-full truncate'>
+                              <Link to={`/home/classes/${classes._id}/${classes.className}`} className='no-underline inline-block hover:no-underline focus:no-underline text-[12px] text-white montserrat-regular w-full h-full truncate'>
                               {classes.className}
                               </Link>
                             </li>

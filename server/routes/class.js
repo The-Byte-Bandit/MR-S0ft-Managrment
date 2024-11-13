@@ -291,7 +291,7 @@ router.get('/', authenticateUser, verifyRole(['admin', 'course_advisor', 'teache
         .populate('teachers', 'firstname lastname');
     } else if (req.user.role === 'student') {
       // For student, retrieve classes based on their enrolled class IDs in the Student model
-      const student = await Student.findById(req.user._id).populate('classes');
+      const student = await Student.findById(req.user.userId).populate('classes');
       if (!student) {
         return res.status(404).json({ message: 'Student not found' });
       }
