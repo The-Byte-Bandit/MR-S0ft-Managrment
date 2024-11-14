@@ -81,4 +81,28 @@ router.get('/courses/:id/materials', authenticateUser, verifyRole(['admin', 'cou
 });
 
 
+router.put('/:id/defer-admission', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { deferReason, defermentDate, returnDate } = req.body;
+  const { id } = req.params;
+
+  try {
+    const student = await Student.findById(id);
+    if (!student) {
+      return res.status(404).json({ message: 'Student not found' });
+    }
+
+    student.isDeferred = true;
+    student.deferReason = deferReason || 'No reason provided';
+    student.defermentDate = defermentDate || new Date();
+    student.returnDate = returnDate || null;
+
+    await student.save();
+
+    res.status(200).json({ message: 'Admission deferred successfully', student });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
 module.exports = router;

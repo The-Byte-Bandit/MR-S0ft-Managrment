@@ -58,6 +58,17 @@ import {
   FETCH_MATERIALS_ERROR,
   FETCH_CLASS_DETAILS_SUCCESS,
   FETCH_CLASS_DETAILS_ERROR,
+  STUDENT_ADD_SUCCESS,
+  STUDENT_ADD_ERROR,
+  STUDENT_DELETE_SUCCESS,
+  STUDENT_DELETE_ERROR,
+  TEACHER_ADD_SUCCESS,
+  TEACHER_ADD_ERROR,
+  TEACHER_DELETE_SUCCESS,
+  TEACHER_DELETE_ERROR,
+  DEFER_ADMISSION,
+  USER_LOADING,
+  USER_ERROR,
   USER_LOGOUT,
 } from '../actionTypes';
 import { persistor } from '../store';
@@ -630,6 +641,113 @@ export const uploadMaterial = (formData, token) => async (dispatch) => {
     dispatch({ type: CLEAR_LOADING });
   }
 };
+
+
+export const addTeachersToClass = (classId, teacherIds, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.post(
+      `${BASE_URL}/class/${classId}/add-teachers`,
+      { teachers: teacherIds },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    dispatch({ type: TEACHER_ADD_SUCCESS, payload: response.data });
+    toast.success('Teachers added successfully');
+  } catch (error) {
+    dispatch({
+      type: TEACHER_ADD_ERROR,
+      payload: error.response?.data.message || 'Failed to add teachers',
+    });
+    toast.error(error.response?.data.message || 'Failed to add teachers');
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const addStudentToClass = (classId, studentId, token) => async (dispatch) => {
+  
+  try {
+    setLoading(dispatch);
+    const response = await axios.post(
+      `${BASE_URL}/class/${classId}/add-students`,
+      { students: studentId },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    dispatch({ type: STUDENT_ADD_SUCCESS, payload: response.data });
+    toast.success('Student added successfully');
+  } catch (error) {
+    dispatch({
+      type: STUDENT_ADD_ERROR,
+      payload: error.response?.data.message || 'Failed to add student',
+    });
+    console.log(error.response?.data.message );
+    
+    toast.error(error.response?.data.message || 'Failed to add student');
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const deleteTeacherFromClass = (classId, teacherId, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.delete(`${BASE_URL}/class/${classId}/remove-teacher/${teacherId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: TEACHER_DELETE_SUCCESS, payload: response.data });
+    toast.success('Teacher removed successfully');
+  } catch (error) {
+    dispatch({
+      type: TEACHER_DELETE_ERROR,
+      payload: error.response?.data.message || 'Failed to remove teacher',
+    });
+    toast.error(error.response?.data.message || 'Failed to remove teacher');
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const deleteStudentFromClass = (classId, studentId, token) => async (dispatch) => {
+  try {
+    setLoading(dispatch);
+    const response = await axios.delete(`${BASE_URL}/class/${classId}/remove-student/${studentId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    dispatch({ type: STUDENT_DELETE_SUCCESS, payload: response.data });
+    toast.success('Student removed successfully');
+  } catch (error) {
+    dispatch({
+      type: STUDENT_DELETE_ERROR,
+      payload: error.response?.data.message || 'Failed to remove student',
+    });
+    toast.error(error.response?.data.message || 'Failed to remove student');
+  } finally {
+    clearLoading(dispatch);
+  }
+};
+
+export const deferAdmission = (id, data, token) => async (dispatch) => {
+  try {
+    dispatch({ type: USER_LOADING });
+
+    const config = {
+      headers: { Authorization: `Bearer ${token}` },
+    };
+
+    const response = await axios.put(`${BASE_URL}/student/${id}/defer-admission`, data, config);
+
+    dispatch({
+      type: DEFER_ADMISSION,
+      payload: response.data.student,
+    });
+  } catch (error) {
+    dispatch({
+      type: USER_ERROR,
+      payload: error.response?.data?.message || 'Server error',
+    });
+  }
+};
+
 
 
 export const userLogout = (navigate) => async (dispatch) => {

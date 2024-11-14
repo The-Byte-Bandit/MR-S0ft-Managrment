@@ -1,8 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect,useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserDetails, fetchStudentDetails, deactivateUser, reActivateUser} from '../redux/actions/userActions';
 import { useParams } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import DeferAdmissionForm from '../components/deferAdmission';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaUserEdit, FaBan, FaCheckCircle } from 'react-icons/fa';
 
@@ -14,6 +15,12 @@ function UserDetails() {
   const loading = useSelector((state) => state.user.loading);
   const error = useSelector((state) => state.user.error);
   const token = useSelector((state) => state.user.user.token);
+  const status = useSelector((state) => state.user.status);
+  const [showDeferModal, setShowDeferModal] = useState(false);
+
+  const handleDeferAdmission = () => {
+    setShowDeferModal(true);
+  };
 
   const isStudent = role.toLowerCase() === 'student';
   const user = isStudent ? studentDetails : userDetails;
@@ -35,9 +42,6 @@ function UserDetails() {
    
   };
 
-  const handleDeferAdmission = () => {
-    toast.success("Admission deferred successfully!");
-  };
 
   const formatValue = (key, value) => {
     // console.log(key, value);
@@ -66,6 +70,14 @@ function UserDetails() {
     return key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase());
   };
 
+  useEffect(() => {
+    if (status === 201) {
+      toast.success("Student deffered successfully!");
+      
+    } else if (error) {
+      toast.error(error);
+    }
+  }, [status, error]);
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar />
@@ -101,19 +113,27 @@ function UserDetails() {
               {user.isActive ? <FaBan /> : <FaCheckCircle />}
               {user.isActive ? 'Disable User' : 'Activate User'}
             </button>
+            {isStudent && (
+        <button
+          onClick={handleDeferAdmission}
+          className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
+        >
+          Defer Admission
+        </button>
+      )}
 
-
-              {isStudent && (
-                <button
-                  onClick={handleDeferAdmission}
-                  className="flex items-center gap-2 px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition"
-                >
-                  Defer Admission
-                </button>
-              )}
+              
             </div>
           </div>
         )}
+        
+      {showDeferModal && (
+        <DeferAdmissionForm
+          onClose={() => setShowDeferModal(false)}
+          studentId={id}
+          token={token}
+        />
+      )}
       </div>
     </div>
   );

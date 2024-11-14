@@ -17,7 +17,7 @@ function Classes() {
 
   // Filter classes by search term
   const filteredClasses = classes.filter((classItem) =>
-    classItem.className.toLowerCase().includes(searchTerm.toLowerCase())
+    classItem?.className?.toLowerCase().includes(searchTerm?.toLowerCase())
   );
 
   // Paginate filtered data

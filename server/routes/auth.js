@@ -218,30 +218,58 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   console.log(req.body, email, password);
-  
+
   try {
     // Try to find the user in the Student collection first
     let user = await Student.findOne({ email });
-    
+
     // If not found in Student, try to find in User collection
     if (!user) {
       user = await User.findOne({ email });
     }
 
-    // If the user is not found in both collections or the password is incorrect, return an error
-    if (!user || user.password !== password) {
+    // If user is not found in both collections, return an error
+    if (!user) {
       console.log('Invalid email or password');
-      
       return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Check if the user is a Student and their endDate has passed
+    if (user instanceof Student && user.endDate && new Date(user.endDate) < new Date()) {
+      // Deactivate the account
+      user.isActive = false;
+      await user.save();
+
+      console.log('Account deactivated due to endDate expiry');
+      return res.status(403).json({ message: 'Account deactivated due to  users account expiry' });
+    }
+
+    // Check if the user's account is active
+    if (user.isActive === false) {
+      console.log('Account deactivated');
+      return res.status(403).json({ message: 'Account deactivated' });
+    }
+
+    // Check if the password matches
+    if (user.password !== password) {
+      console.log('Invalid email or password');
+      return res.status(400).json({ message: 'Invalid email or password' });
+    }
+
+    // Include endDate in the JWT payload if the user is a Student
+    const tokenPayload = {
+      userId: user._id,
+      role: user.role,
+    };
+
+    if (user instanceof Student) {
+      tokenPayload.endDate = user.endDate;
     }
 
     // Generate JWT token
     const token = jwt.sign(
-      { 
-        userId: user._id, 
-        role: user.role 
-      }, 
-      process.env.JWT_SECRET, 
+      tokenPayload,
+      process.env.JWT_SECRET,
       { expiresIn: '1d' }
     );
 
@@ -261,6 +289,7 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
 // Password reset (customize as needed)
 router.post('/reset-password', async (req, res) => {

@@ -1,10 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Classes = require('../models/class');
+const Course = require('../models/course');
 const Student = require('../models/student');
 const User = require('../models/user');
 const verifyRole = require('../middleware/roleMiddleware');
 const authenticateUser = require('../middleware/authenticateUser');
+const mongoose = require('mongoose'); // Import mongoose
+
 
 // Create a new class
 router.post('/create', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
@@ -26,6 +29,13 @@ router.post('/create', authenticateUser, verifyRole(['admin', 'course_advisor'])
       // Create a new class with the course ID and teacher IDs
       const newClass = new Classes({ course: courseId, title, teachers, startDate, endDate });
       await newClass.save();
+
+      // Increment the class count for the course
+      await Course.findByIdAndUpdate(
+        courseId,
+        { $inc: { classCount: 1 } }, // Increment the classCount by 1
+        { new: true }
+    );
   
       // Loop through the teachers array and add the new class to each teacher's classes
       for (const teacherId of teachers) {
@@ -166,73 +176,227 @@ router.put('/:id/update', authenticateUser, verifyRole(['admin', 'course_advisor
   });
 
 // Delete a class
-router.delete('/:id',authenticateUser,  verifyRole(['admin', 'course_advisor']), async (req, res) => {
+router.delete('/:id', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
   try {
-    await Classes.findByIdAndDelete(req.params.id);
-    console.log('Class deleted successfully' );
-    
-    res.json({ message: 'Class deleted successfully' });
+      const classId = req.params.id;
+
+      // Find the class to get the associated course ID
+      const targetClass = await Classes.findById(classId);
+
+      if (!targetClass) {
+          return res.status(404).json({ message: 'Class not found' });
+      }
+
+      const courseId = targetClass.course;
+
+      // Delete the class
+      await Classes.findByIdAndDelete(classId);
+
+      // Decrement the class count for the course
+      if (courseId) {
+          await Course.findByIdAndUpdate(
+              courseId,
+              { $inc: { classCount: -1 } }, // Decrement the classCount by 1
+              { new: true }
+          );
+      }
+
+      res.json({ message: 'Class deleted successfully' });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: 'Server error' });
+      console.error(error);
+      res.status(500).json({ message: 'Server error', error });
   }
 });
 
-// Add students to a class
+
+router.delete('/:classId/remove-student/:studentId', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { classId, studentId } = req.params;
+
+  try {
+    const targetClass = await Classes.findById(classId);
+
+    if (!targetClass) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    if (!targetClass.students.includes(studentId)) {
+      return res.status(400).json({ message: 'Student not assigned to this class' });
+    }
+
+    targetClass.students = targetClass.students.filter((id) => id.toString() !== studentId);
+    await targetClass.save();
+
+    await Student.findByIdAndUpdate(
+      studentId,
+      { $pull: { classes: classId } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: 'Student removed from the class successfully',studentId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
+router.delete('/:classId/remove-teacher/:teacherId', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  const { classId, teacherId } = req.params;
+
+  try {
+    const targetClass = await Classes.findById(classId);
+
+    if (!targetClass) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    if (!targetClass.teachers.includes(teacherId)) {
+      return res.status(400).json({ message: 'Teacher not assigned to this class' });
+    }
+
+    targetClass.teachers = targetClass.teachers.filter((id) => id.toString() !== teacherId);
+    await targetClass.save();
+
+    await User.findByIdAndUpdate(
+      teacherId,
+      { $pull: { classes: classId } },
+      { new: true }
+    );
+
+    res.status(200).json({ message: 'Teacher removed from the class successfully',teacherId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
+router.post('/:classId/add-teachers', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
+  let { teachers } = req.body; // Accept teachers from the request body
+  const classId = req.params.classId;
+
+  try {
+    // Validate classId
+    if (!mongoose.Types.ObjectId.isValid(classId)) {
+      return res.status(400).json({ message: 'Invalid class ID' });
+    }
+
+    // Ensure teachers is an array
+    if (!Array.isArray(teachers)) {
+      teachers = [teachers]; // Convert to array if it's a single value
+    }
+
+    const targetClass = await Classes.findById(classId);
+
+    if (!targetClass) {
+      return res.status(404).json({ message: 'Class not found' });
+    }
+
+    // Check if teachers array is empty
+    if (teachers.length === 0) {
+      return res.status(400).json({ message: 'No teachers provided' });
+    }
+
+    const addedTeachers = [];
+    for (const teacherId of teachers) {
+      // Validate teacherId
+      if (!mongoose.Types.ObjectId.isValid(teacherId)) {
+        console.warn(`Invalid teacher ID: ${teacherId}`);
+        continue;
+      }
+
+      const teacher = await User.findById(teacherId);
+      if (teacher && teacher.role === 'teacher') {
+        if (!targetClass.teachers.includes(teacherId)) {
+          targetClass.teachers.push(teacherId);
+          addedTeachers.push(teacher);
+
+          if (!teacher.classes.includes(classId)) {
+            await User.findByIdAndUpdate(
+              teacherId,
+              { $push: { classes: classId } },
+              { new: true }
+            );
+          }
+        }
+      } else {
+        console.warn(`User with ID ${teacherId} is not a teacher or does not exist`);
+      }
+    }
+
+    await targetClass.save();
+    res.status(200).json({ message: 'Teachers added successfully to the class', addedTeachers });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error });
+  }
+});
+
+
+
+
 router.post('/:classId/add-students', authenticateUser, verifyRole(['admin', 'course_advisor']), async (req, res) => {
-    const { students } = req.body; // Array of student IDs
-    const classId = req.params.classId;
-  
-    try {
+  let { students } = req.body; // Destructure students from request body
+  const classId = req.params.classId;
+
+  try {
+      // Ensure students is an array
+      if (!Array.isArray(students)) {
+          if (typeof students === 'string') {
+              students = [students]; // Wrap single student in an array
+          } else {
+              return res.status(400).json({ message: 'Invalid students data format' });
+          }
+      }
+
       // Find the class by ID
       const targetClass = await Classes.findById(classId);
-  
       if (!targetClass) {
-        return res.status(404).json({ message: 'Class not found' });
+          return res.status(404).json({ message: 'Class not found' });
       }
-  
-      // Check if students array is not empty
-      if (!students || !Array.isArray(students) || students.length === 0) {
-        return res.status(400).json({ message: 'No students provided' });
-      }
-  
-      // Loop through the array of student IDs
+
       const addedStudents = [];
       for (const studentId of students) {
-        // Check if the student exists
-        const student = await Student.findById(studentId);
-        if (student) {
-          // Add student to the class if not already present
-          if (!targetClass.students.includes(studentId)) {
-            targetClass.students.push(studentId);
-            addedStudents.push(student);
-  
-            // Also add the class ID to the student's classes array
-            if (!student.classes.includes(classId)) {
-              await Student.findByIdAndUpdate(
-                studentId,
-                { $push: { classes: classId } }, // Add the class ID to the student's classes array
-                { new: true }
-              );
-            }
+          // Validate ObjectId format
+          if (!mongoose.Types.ObjectId.isValid(studentId)) {
+              console.warn(`Invalid ObjectId format: ${studentId}`);
+              continue;
           }
-        } else {
-          console.warn(`Student with ID ${studentId} not found`);
-        }
+
+          // Check if the student exists
+          const student = await Student.findById(studentId);
+          if (student) {
+              if (!targetClass.students.includes(studentId)) {
+                  targetClass.students.push(studentId);
+                  addedStudents.push(student);
+
+                  // Add the class ID to the student's classes array
+                  if (!student.classes.includes(classId)) {
+                      await Student.findByIdAndUpdate(
+                          studentId,
+                          { $push: { classes: classId } },
+                          { new: true }
+                      );
+                  }
+              }
+          } else {
+              console.warn(`Student with ID ${studentId} not found`);
+          }
       }
-  
-      // Save the updated class with new students
+
+      // Save updated class
       await targetClass.save();
-  
+
       res.status(200).json({
-        message: 'Students added successfully to the class',
-        addedStudents
+          message: 'Students added successfully to the class',
+          addedStudents,
       });
-    } catch (error) {
-      console.log(error);
+  } catch (error) {
+      console.error(error);
       res.status(500).json({ message: 'Server error', error });
-    }
-  });
+  }
+});
+
 
 
 // Get all classes

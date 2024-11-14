@@ -1,54 +1,3 @@
-// import React from 'react';
-// import SmallCard from '../components/smallCard';
-// import LargeCard from '../components/largeCard';
-// import { useSelector } from 'react-redux';
-// import { Link } from 'react-router-dom';
-// import { add } from '../constants/constant';
-
-// function Courses() {
-//   const courses = useSelector((state) => state.user.courses);
-
-//   return (
-//     <div className="p-6 w-full h-full space-y-6">
-
-//       {/* Header Section with Add Button */}
-//       <div className="flex items-center justify-between">
-//         <h1 className="text-3xl font-bold text-gray-800">Courses</h1>
-//         <Link to="/home/add-course" className="flex no-underline items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue50 rounded-lg hover:bgblue-25 transition duration-200">
-//           <img src={add} alt="add course" className="w-5" />
-//           Add New Course
-//         </Link>
-//       </div>
-//       {/* <Link to="/home/add-course" className="   flex justify-end mb-4 no-underline">
-//             <div className="px-4 py-2 gap-[6px] rounded-lg hover:bg-blue25 justify-center items-center transition duration-200  text-white  bg-blue50 flex flex-row">
-//                 <img src={add} alt='add course' className='w-[11px]'/> Add Course
-//             </div>
-//         </Link> */}
-
-//       {/* Course Count Card */}
-//       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-//         <SmallCard 
-//           heading="Total Courses"
-//           figure={courses?.length || 0}
-//           className="shadow-md"
-//         />
-//       </div>
-
-//       {/* List of Courses */}
-//       <section>
-//         <h1  className="text-2xl font-bold text-gray-700">Available Courses</h1>
-//         {courses && courses.length > 0 ? (
-//           <LargeCard courses={courses} />
-//         ) : (
-//           <p className="text-gray-500 text-center mt-10">No courses available</p>
-//         )}
-//       </section>
-//     </div>
-//   );
-// }
-
-// export default Courses;
-
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchCourses } from '../redux/actions/userActions';
@@ -71,10 +20,10 @@ function Courses() {
     dispatch(fetchCourses(token));
   }, [dispatch, token]);
 
-  // Transform courses data to capture weekly class counts
-  const weeklyClassData = courses.map(course => ({
+  // Transform courses data to capture total class counts for each course
+  const classData = courses.map(course => ({
     name: course.title,
-    weeklyClasses: course.weeklyClasses || 0,
+    totalClasses: course.classCount || 0, // Assuming `classesCount` is the total classes for the course
   }));
 
   // Pagination calculations
@@ -102,16 +51,16 @@ function Courses() {
         </Link>
       </div>
 
-      {/* Course Analytics - Weekly Classes Chart */}
+      {/* Course Analytics - Total Classes Chart */}
       <div className="bg-white p-6 rounded-lg shadow-lg">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Classes Created Weekly</h2>
+        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Total Classes by Course</h2>
         <ResponsiveContainer width="100%" height={400}>
-          <BarChart data={weeklyClassData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+          <BarChart data={classData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="name" label={{ value: 'Courses', position: 'insideBottom', dy: 10 }} />
-            <YAxis label={{ value: 'Weekly Classes', angle: -90, position: 'insideLeft' }} />
+            <YAxis label={{ value: 'Total Classes', angle: -90, position: 'insideLeft' }} />
             <Tooltip />
-            <Bar dataKey="weeklyClasses" fill="#4A90E2" />
+            <Bar dataKey="totalClasses" fill="#4A90E2" />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -129,7 +78,7 @@ function Courses() {
                       Course Name
                     </th>
                     <th className="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Classes Created Weekly
+                      Total Classes
                     </th>
                     <th className="px-5 py-3 border-b border-gray-200 bg-gray-50 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Actions
@@ -143,7 +92,7 @@ function Courses() {
                         <p className="text-gray-900 whitespace-no-wrap">{course.title}</p>
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
-                        <p className="text-gray-900 whitespace-no-wrap">{course.weeklyClasses || 'N/A'}</p>
+                        <p className="text-gray-900 whitespace-no-wrap">{course.classesCount || 'N/A'}</p>
                       </td>
                       <td className="px-5 py-5 border-b border-gray-200 bg-white text-sm">
                         <Link

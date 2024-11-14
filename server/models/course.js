@@ -5,6 +5,9 @@ const CourseSchema = new mongoose.Schema({
         type: String, 
         required: true 
     },
+    classCount:{
+        type: Number
+      },
     materials: [
         { 
             type: mongoose.Schema.Types.ObjectId, 

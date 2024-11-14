@@ -257,13 +257,51 @@ router.get('/:id/students', authenticateUser, verifyRole(['admin', 'course_advis
   try {
     const student = await Student.findById(req.params.id)
       .select('-password') // Exclude the password field
-      .populate('classes', 'title _id'); // Populate class titles and IDs only
-    
+      .populate({
+        path: 'classes',
+        select: 'title _id', // Fetch class titles and IDs only if classes exist
+      });
+
     if (!student) {
       return res.status(404).json({ message: 'Student not found' });
     }
-    
-    res.json(student);
+
+    res.json({
+      studentId: student._id,
+      firstname: student.firstname,
+      lastname: student.lastname,
+      email: student.email,
+      role: student.role,
+      isActive: student.isActive,
+      createdAt: student.createdAt,
+      phone:student.phone,
+      address:student.address,
+      qualification:student.qualification,
+      duration:student.duration,
+      trainingFee:student.trainingFee,
+      amountPaid:student.amountPaid,
+      balance:student.balance,
+      guardianName:student.guardianName,
+      guardianRelationship:student.guardianRelationship,
+      guardianPhone:student.guardianPhone,
+      counselor:student.counselor,
+      startDate:student.startDate,
+      endDate:student.endDate,
+      remark:student.remark,
+      isActive:student.isActive,
+      isDeferred:student.isDeferred,
+      deferReason:student.deferReason,
+      defermentDate:student.defermentDate,
+      returnDate:student.returnDate,
+      createdAt:student.createdAt,
+
+      classes: student.classes
+        ? student.classes.map((classItem) => ({
+            classId: classItem._id,
+            className: classItem.title,
+          }))
+        : [],
+    });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error' });

@@ -67,6 +67,17 @@ import {
   FETCH_MATERIALS_ERROR,
   FETCH_CLASS_DETAILS_SUCCESS,
   FETCH_CLASS_DETAILS_ERROR,
+  STUDENT_DELETE_SUCCESS,
+  STUDENT_DELETE_ERROR,
+  TEACHER_ADD_SUCCESS,
+  TEACHER_ADD_ERROR,
+  TEACHER_DELETE_SUCCESS,
+  TEACHER_DELETE_ERROR,
+  STUDENT_ADD_SUCCESS,
+  STUDENT_ADD_ERROR,
+  DEFER_ADMISSION,
+  USER_LOADING,
+  USER_ERROR,
 } from '../actionTypes';
 
 const initialState = {
@@ -433,6 +444,76 @@ const reducer = (state = initialState, action) => {
               ...state,
               error: action.payload,
             };
+
+            case TEACHER_ADD_SUCCESS:
+              return {
+                ...state,
+                classDetails: {
+                  ...state.classDetails,
+                  teachers: [...state.classDetails.teachers, ...action.payload.addedTeachers],
+                },
+                error: null,
+              };
+            case TEACHER_ADD_ERROR:
+              return {
+                ...state,
+                error: action.payload,
+              };
+
+              case STUDENT_ADD_SUCCESS:
+              return {
+                ...state,
+                classDetails: {
+                  ...state.classDetails,
+                  students: [...state.classDetails.students, ...action.payload.addedStudents],
+                },
+                error: null,
+              };
+            case STUDENT_ADD_ERROR:
+              return {
+                ...state,
+                error: action.payload,
+              };
+            case TEACHER_DELETE_SUCCESS:
+              return {
+                ...state,
+                classDetails: {
+                  ...state.classDetails,
+                  teachers: state.classDetails.teachers.filter(
+                    (teacher) => teacher.teacherId !== action.payload.teacherId
+                  ),
+                },
+                error: null,
+              };
+            case TEACHER_DELETE_ERROR:
+              return {
+                ...state,
+                error: action.payload,
+              };
+            case STUDENT_DELETE_SUCCESS:
+              return {
+                ...state,
+                classDetails: {
+                  ...state.classDetails,
+                  students: state.classDetails.students.filter(
+                    (student) => student.studentId !== action.payload.studentId
+                  ),
+                },
+                error: null,
+              };
+            case STUDENT_DELETE_ERROR:
+              return {
+                ...state,
+                error: action.payload,
+              };
+              case USER_LOADING:
+                return { ...state, loading: true, error: null };
+          
+              case DEFER_ADMISSION:
+                return { ...state, studentDetails: action.payload, loading: false, error: null };
+          
+              case USER_ERROR:
+                return { ...state, loading: false, error: action.payload };
       
     default:
       return state;
