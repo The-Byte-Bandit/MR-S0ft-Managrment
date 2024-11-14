@@ -33,7 +33,7 @@ function App() {
             <Route path="dashboard" element={<AdminPrivateRoute><Dashboard /></AdminPrivateRoute>} />
             <Route path="courses" element={<AdminPrivateRoute><Courses /></AdminPrivateRoute>} />
             <Route path="courses/:id" element={<AdminPrivateRoute><CourseDetail /></AdminPrivateRoute>} />
-            <Route path="classes" element={<AdminPrivateRoute><Classes /></AdminPrivateRoute>} />
+            <Route path="classes" element={<Classes />}/>
             <Route path="class-details/:classId" element={<AdminPrivateRoute><ClassDetails /></AdminPrivateRoute>} />
             <Route path="classes/:id/:name" element={<ClassItem/>} />
             <Route path="teachers" element={<AdminPrivateRoute><Teachers /></AdminPrivateRoute>} />
